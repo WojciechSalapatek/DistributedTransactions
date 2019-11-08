@@ -1,5 +1,8 @@
-package com.elmachos.distransactions.library.coordinator;
+package com.elmachos.distransactions.library.coordinator.service;
 
+import com.elmachos.distransactions.library.coordinator.model.Participant;
+import com.elmachos.distransactions.library.coordinator.model.ParticipantCommand;
+import com.elmachos.distransactions.library.coordinator.model.ParticipantStatus;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

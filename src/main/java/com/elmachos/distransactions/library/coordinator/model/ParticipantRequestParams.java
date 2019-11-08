@@ -1,5 +1,6 @@
-package com.elmachos.distransactions.library.coordinator;
+package com.elmachos.distransactions.library.coordinator.model;
 
+import com.elmachos.distransactions.library.coordinator.model.ParticipantCommand;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
