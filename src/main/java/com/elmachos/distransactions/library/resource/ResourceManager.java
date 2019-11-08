@@ -1,12 +1,15 @@
 package com.elmachos.distransactions.library.resource;
 
-public interface ResourceManager {
+import lombok.Data;
 
-    void beginTransaction();
+@Data
+public class ResourceManager {
 
-    void commit();
+    private static String id;
 
-    void addExecutableStatement(ExecutableStatement statement);
 
-    void rollback();
+    public ResourceManager() {
+        id = System.getProperty("resourceHandler.id");
+    }
+
 }
