@@ -2,13 +2,14 @@ package com.elmachos.distransactions.library.coordinator;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-@EqualsAndHashCode
+@Slf4j
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class TransactionHandler extends Thread {
 
     private int expected_participants;
