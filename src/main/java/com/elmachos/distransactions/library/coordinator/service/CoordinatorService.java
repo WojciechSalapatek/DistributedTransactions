@@ -1,5 +1,6 @@
-package com.elmachos.distransactions.library.coordinator;
+package com.elmachos.distransactions.library.coordinator.service;
 
+import com.elmachos.distransactions.library.coordinator.model.TransactionParams;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

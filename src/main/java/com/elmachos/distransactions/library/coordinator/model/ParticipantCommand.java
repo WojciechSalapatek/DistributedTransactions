@@ -1,4 +1,4 @@
-package com.elmachos.distransactions.library.coordinator;
+package com.elmachos.distransactions.library.coordinator.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
