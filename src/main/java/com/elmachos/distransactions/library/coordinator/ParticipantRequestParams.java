@@ -9,5 +9,6 @@ public class ParticipantRequestParams {
 
     private String id;
     private ParticipantCommand command;
+    private String message;
 
 }

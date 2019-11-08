@@ -4,5 +4,6 @@ import lombok.Data;
 
 @Data
 public class TransactionParams {
-    int participants;
+    private Participant master;
+    private int participants;
 }

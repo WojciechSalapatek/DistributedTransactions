@@ -8,7 +8,9 @@ import lombok.Getter;
 public enum ParticipantCommand {
     START("START"),
     COMMIT("COMMIT"),
-    ROLLBACK("ROLLBACK");
+    ROLLBACK("ROLLBACK"),
+    ERROR_ROLLBACKED("ERROR_ROLLBACKED"),
+    ERROR_INCONSISTENT_STATE("ERROR_INCONSISTENT_STATE");
 
     private String command;
 }

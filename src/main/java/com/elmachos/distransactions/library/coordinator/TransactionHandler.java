@@ -1,23 +1,35 @@
 package com.elmachos.distransactions.library.coordinator;
 
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 
 import java.util.Map;
 import java.util.function.Supplier;
 
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 public class TransactionHandler extends Thread {
 
+    @NonNull
     private int expected_participants;
+    @NonNull
     private ParticipantService participantService;
+    @NonNull
     private Map<Participant, ParticipantStatus> participants;
+    @NonNull
+    private Participant master;
 
 
-    private static final int SLEEP_TIME = 200;
+    @Value("${coordinator.config.sleeptime}")
+    private int sleepTime;
+    @Value("${coordinator.config.timeout}")
+    private int timeout;
+    private int slept = 0;
 
     public void run() {
         sleep(() -> expected_participants < participants.size());
@@ -37,16 +49,6 @@ public class TransactionHandler extends Thread {
                 });
     }
 
-    private void sleep(Supplier<Boolean> condition) {
-        while (condition.get()) {
-            try {
-                Thread.sleep(SLEEP_TIME);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     public void registerParticipant(Participant participant) {
         participants.put(participant, ParticipantStatus.INIT);
     }
@@ -54,4 +56,53 @@ public class TransactionHandler extends Thread {
     public void recieveOkStatusForParticipant(Participant participant) {
         participants.put(participant, ParticipantStatus.WAITING_FOR_COMMIT);
     }
+
+    public boolean rollbackAll() {
+        return participants.keySet()
+                .stream()
+                .map((p) -> {
+                    if (participantService.sendPost(p, ParticipantCommand.ROLLBACK) == HttpStatus.OK)
+                        participants.put(p, ParticipantStatus.ROLLBACK);
+                    else return false;
+                    return true;
+
+                })
+                .allMatch(e -> e);
+    }
+
+    private void sleep(Supplier<Boolean> condition) {
+        while (condition.get()) {
+            if (slept > timeout) {
+                timeoutExceeded();
+            }
+            try {
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            slept += sleepTime;
+        }
+    }
+
+    private void timeoutExceeded() {
+        log.error("Waiting timeout {} exceeded, participants states: ", timeout);
+        participants.forEach(
+                (k, v) -> log.error("{}: {}", k.getAddress(), v.getStatus())
+        );
+
+        if (rollbackAll()) {
+            log.info("Intermediate changes was successfully rollbacked");
+            participantService.sendPost(master, ParticipantCommand.ERROR_ROLLBACKED);
+        }
+        else {
+            StringBuilder message = new StringBuilder();
+            participants.forEach(
+                    (k,v) -> message.append(String.format("%s : %s, ", k.getAddress(), v.getStatus()))
+            );
+            log.error("Error during rollbacking, state: {}", message.toString());
+            participantService.sendPost(master, ParticipantCommand.ERROR_INCONSISTENT_STATE, message.toString());
+        }
+    }
+
+
 }

@@ -22,8 +22,8 @@ public class CoordinatorService {
 
     public String createTransaction(TransactionParams params){
         String transactionId = getNextId();
-        TransactionHandler handler = new TransactionHandler(params.participants, participantService, new HashMap<>());
-        log.debug("Created handler [participants: {}] for {}", params.participants, transactionId);
+        TransactionHandler handler = new TransactionHandler(params.getParticipants(), participantService, new HashMap<>(), params.getMaster());
+        log.debug("Created handler [participants: {}] for {}", params.getParticipants(), transactionId);
         handlers.put(transactionId, handler);
         return transactionId;
     }
