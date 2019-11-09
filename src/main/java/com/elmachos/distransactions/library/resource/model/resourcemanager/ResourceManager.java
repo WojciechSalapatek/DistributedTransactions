@@ -1,4 +1,4 @@
-package com.elmachos.distransactions.library.resource;
+package com.elmachos.distransactions.library.resource.model.resourcemanager;
 
 import lombok.Data;
 
@@ -6,7 +6,6 @@ import lombok.Data;
 public class ResourceManager {
 
     private static String id;
-
 
     public ResourceManager() {
         id = System.getProperty("resourceHandler.id");

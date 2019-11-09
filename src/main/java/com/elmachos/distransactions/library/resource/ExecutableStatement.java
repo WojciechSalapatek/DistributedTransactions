@@ -1,7 +1,9 @@
 package com.elmachos.distransactions.library.resource;
 
+import java.sql.Connection;
+
 public interface ExecutableStatement {
 
-    public String getQuery();
+    String getQuery();
 
 }
