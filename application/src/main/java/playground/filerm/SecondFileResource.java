@@ -13,23 +13,14 @@ import javax.annotation.PostConstruct;
 
 @Service
 @AllArgsConstructor(onConstructor = @__(@Autowired))
-public class FirstFileResource {
+public class SecondFileResource {
 
     private ApplicationContext context;
-    private SecondFileResource secondFileResource;
 
-    @PostConstruct()
-    void start() {
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    public void start(String transactionId) {
         ResourceManager resourceManager = ResourceManagerFactory.fileResourceManager(context);
-        String transactionId = resourceManager.initiateTransaction(2);
         resourceManager.addExecutableStatement(new FileExecutbleStatement("dummy"));
         resourceManager.registerForTransaction(transactionId);
-        secondFileResource.start(transactionId);
     }
 
 }

@@ -23,7 +23,7 @@ public class ResourceManagerController {
 
     @PostMapping("/${resourceHandler.path}")
     public ResponseEntity<String> handleRequest(@RequestBody ParticipantRequestParams participantRequestParams) {
-        return resourceManagerService.handleRequest(participantRequestParams.getId(), participantRequestParams.getCommand());
+        return resourceManagerService.handleRequest(participantRequestParams.getId(), participantRequestParams.getManagerId(), participantRequestParams.getCommand());
     }
 
 

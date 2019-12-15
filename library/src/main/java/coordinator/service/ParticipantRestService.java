@@ -36,7 +36,7 @@ public class ParticipantRestService {
                 errorCallback.accept(ex);
             }
         };
-        ParticipantRequestParams params = new ParticipantRequestParams(participant.getTransactionId(), command, message);
+        ParticipantRequestParams params = new ParticipantRequestParams(participant.getTransactionId(), participant.getManagerId(), command, message);
         try {
             HttpStatus status = sendPost(participant.getAddress(), params, callback);
             if (!status.is2xxSuccessful())

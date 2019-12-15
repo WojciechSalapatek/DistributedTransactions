@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class ParticipantRequestParams {
 
     private String id;
+    private String managerId;
     private ParticipantCommand command;
     private String message;
 

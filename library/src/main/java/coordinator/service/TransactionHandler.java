@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
 
@@ -71,7 +70,14 @@ public class TransactionHandler extends Thread {
                             });
                 });
 
-        if (!sleep(() -> !participants.values().stream().allMatch(v -> v == WAITING_FOR_COMMIT))) {
+        boolean startUnsuccessful = !sleep(
+                () -> !participants
+                        .values()
+                        .stream()
+                        .allMatch(v -> v == WAITING_FOR_COMMIT)
+        );
+
+        if (startUnsuccessful) {
             timeoutExceeded();
             return false;
         }
@@ -89,8 +95,13 @@ public class TransactionHandler extends Thread {
                             }
                     );
                 });
-
-        if (!sleep(() -> !participants.values().stream().allMatch(v -> v == COMMITED))) {
+        boolean commitUnsuccessful = !sleep(
+                () -> !participants
+                        .values()
+                        .stream()
+                        .allMatch(v -> v == COMMITED)
+        );
+        if (commitUnsuccessful) {
             timeoutExceeded();
             return false;
         }

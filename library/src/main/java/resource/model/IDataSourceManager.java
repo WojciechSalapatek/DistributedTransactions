@@ -4,9 +4,11 @@ import coordinator.model.TransactionParams;
 import resource.ExecutableStatement;
 import org.springframework.http.ResponseEntity;
 
-public interface IDataSourceHandler {
+public interface IDataSourceManager {
 
-    String initiateTransaction(TransactionParams transactionParams);
+    String getId();
+
+    String initiateTransaction(int participants);
 
     void registerForTransaction(String transactionId);
 
