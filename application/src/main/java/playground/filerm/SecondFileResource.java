@@ -20,7 +20,7 @@ public class SecondFileResource {
         try {
             FileResourceManager resourceManager = new FileResourceManager("2", resourceManagerService,
                     "C:\\Users\\micha\\IdeaProjects\\DistributedTransactions\\application\\src\\main\\resources\\testfile1.txt");
-            resourceManager.write("it's working!");
+            resourceManager.write("it's working! :)");
             resourceManager.registerForTransaction(transactionId);
 
         } catch (IOException e) {

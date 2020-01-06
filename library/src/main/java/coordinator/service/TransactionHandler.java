@@ -7,9 +7,13 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static coordinator.model.ParticipantCommand.*;
 import static coordinator.model.ParticipantStatus.*;
@@ -35,7 +39,7 @@ public class TransactionHandler extends Thread {
     @Value("${coordinator.config.sleeptime}")
     private int sleepTime = 2000;
     @Value("${coordinator.config.timeout}")
-    private int timeout = 10000;
+    private int timeout = 1000;
     private int slept = 0;
 
     public void run() {
@@ -60,68 +64,70 @@ public class TransactionHandler extends Thread {
         return true;
     }
 
-    private boolean sendStartCommands(){
-        participants.keySet().forEach(
-                (p) -> {
-                    participants.put(p, ParticipantStatus.STARTED);
-                    participantService.sendCommand(p, id, address, "START command", START,
-                            s -> receiveOkStatusForParticipant(p),
-                            throwable -> {
-                                log.error("Start command for {} failed due to {}", address, throwable.getMessage());
-                                participants.put(p, ERROR);
-                            });
-                });
+    private boolean sendStartCommands() {
+        List<Object> startedParticipants = participants
+                .keySet()
+                .parallelStream()
+                .map(p -> participantService.sendCommand(p, id, address, "START command", START,
+                        s -> receiveOkStatusForParticipant(p),
+                        throwable -> {
+                            log.error("Start command for {} failed due to {}", address, throwable.getMessage());
+                            participants.put(p, ERROR);
+                        }))
+                .map(p -> p.completable())
+                .map(p -> p.completeOnTimeout(HttpStatus.REQUEST_TIMEOUT, timeout, TimeUnit.MILLISECONDS))
+                .map(p -> p.join())
+                .collect(Collectors.toList());
 
-        boolean startUnsuccessful = !sleep(
-                () -> !areParticipants(WAITING_FOR_COMMIT)
-        );
-
-        if (startUnsuccessful) {
+        if (startedParticipants.contains(HttpStatus.REQUEST_TIMEOUT)) {
             timeoutExceeded();
             return false;
+        } else {
+            participants.keySet().forEach(p -> participants.put(p, WAITING_FOR_COMMIT));
+            return true;
         }
-        return true;
     }
 
     private boolean sendCommitCommands(){
-        participants.keySet().forEach(
-                (p) -> {
-                    participantService.sendCommand(p, id, address, "COMMIT command", ParticipantCommand.COMMIT,
-                            s -> participants.put(p, ParticipantStatus.COMMITED),
-                            throwable -> {
-                                log.error("Sending commit for {} failed due to {}", address, throwable.getMessage());
-                                participants.put(p, ERROR);
-                            }
-                    );
-                });
-        boolean commitUnsuccessful = !sleep(
-                () -> !areParticipants(COMMITED)
-        );
-        if (commitUnsuccessful) {
+        List<Object> commitedParticipants = participants
+                .keySet()
+                .parallelStream()
+                .map(p -> participantService.sendCommand(p, id, address, "COMMIT command", ParticipantCommand.COMMIT,
+                        s -> receiveOkStatusForParticipant(p),
+                        throwable -> {
+                            log.error("Sending commit for {} failed due to {}", address, throwable.getMessage());
+                            participants.put(p, ERROR);
+                        }))
+                .map(p -> p.completable())
+                .map(p -> p.completeOnTimeout(HttpStatus.REQUEST_TIMEOUT, timeout, TimeUnit.MILLISECONDS))
+                .map(p -> p.join())
+                .collect(Collectors.toList());
+
+        if (commitedParticipants.contains(HttpStatus.REQUEST_TIMEOUT)) {
             timeoutExceeded();
             return false;
+        } else {
+            participants.keySet().forEach(p -> participants.put(p, COMMITED));
+            return true;
         }
-        return true;
-    }
-
-    private boolean areParticipants(ParticipantStatus participantStatus) {
-        return participants
-                .values()
-                .stream()
-                .allMatch(v -> v == participantStatus);
     }
 
     private boolean rollbackAll() {
         log.info("Rollbacking");
-        participants.keySet()
-                .forEach((p) ->
-                        participantService.sendCommand(p, id, address, "ROLLBACK comand", ParticipantCommand.ROLLBACK,
-                                s -> participants.put(p, ROLLBACKED),
-                                throwable -> {
-                                    log.error("Rollbacking for {} failed due to {}", address, throwable.getMessage());
-                                    participants.put(p, ERROR);
-                                }));
-        return sleep(() -> !areParticipants(ROLLBACKED));
+        List<Object> rollbackedParticipants = participants
+                .keySet()
+                .parallelStream()
+                .map(p -> participantService.sendCommand(p, id, address, "COMMIT command", ParticipantCommand.COMMIT,
+                        s -> receiveOkStatusForParticipant(p),
+                        throwable -> {
+                            log.error("Sending commit for {} failed due to {}", address, throwable.getMessage());
+                            participants.put(p, ERROR);
+                        }))
+                .map(p -> p.completable())
+                .map(p -> p.completeOnTimeout(HttpStatus.REQUEST_TIMEOUT, timeout, TimeUnit.MILLISECONDS))
+                .map(p -> p.join())
+                .collect(Collectors.toList());
+        return !rollbackedParticipants.contains(HttpStatus.REQUEST_TIMEOUT);
     }
 
     private void sendSuccess(){
@@ -173,6 +179,4 @@ public class TransactionHandler extends Thread {
                     th -> {});
         }
     }
-
-
 }

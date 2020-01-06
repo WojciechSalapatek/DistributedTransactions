@@ -13,8 +13,6 @@ public interface IResourceManger {
 
     void commit() throws Exception;
 
-    void close() throws Exception;
-
     void rollback() throws Exception;
 
     void execute() throws Exception;

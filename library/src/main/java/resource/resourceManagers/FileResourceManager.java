@@ -59,11 +59,6 @@ public class FileResourceManager implements IResourceManger {
     }
 
     @Override
-    public void close() throws Exception {
-
-    }
-
-    @Override
     public void rollback() throws Exception {
         Files.delete(tmpPath);
     }

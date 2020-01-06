@@ -23,7 +23,6 @@ import java.util.function.Function;
 @NoArgsConstructor
 public class ResourceManagerService implements IDataSourceManager {
 
-
     @Getter
     @Value("${resourceHandler.coordinatorEndpointAddress}")
     private String coordinatorEndpointAddress;
@@ -53,7 +52,6 @@ public class ResourceManagerService implements IDataSourceManager {
         coordinatorEndpoint.postForEntity(coordinatorEndpointAddress + createRegisterSuffix.apply(transactionId),
                 req, String.class);
     }
-
 
     public IResourceManger getResourceManager(String resourceManagerId){
         return resourceMangers.get(resourceManagerId);

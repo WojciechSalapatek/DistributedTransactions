@@ -21,36 +21,20 @@ public class ParticipantRestService {
 
     private AsyncRestTemplate restTemplate = new AsyncRestTemplate();
 
-    public void sendCommand(String resourceManagerId, String transactionId, String address, String message, ParticipantCommand command,
+    public ListenableFuture sendCommand(String resourceManagerId, String transactionId, String address, String message, ParticipantCommand command,
                             Consumer<ResponseEntity<String>> successCallback,
                             Consumer<Throwable> errorCallback) {
-        ListenableFutureCallback<ResponseEntity<String>> callback = new ListenableFutureCallback<>() {
-
-            @Override
-            public void onSuccess(ResponseEntity<String> result) {
-                successCallback.accept(result);
-            }
-
-            @Override
-            public void onFailure(Throwable ex) {
-                errorCallback.accept(ex);
-            }
-        };
+        CoordinatorListenableFutureCallback callback = new CoordinatorListenableFutureCallback(errorCallback, successCallback);
         ParticipantRequestParams params = new ParticipantRequestParams(transactionId, resourceManagerId, command, message);
-        try {
-            HttpStatus status = sendPost(address, params, callback);
-            if (!status.is2xxSuccessful())
-                throw new RuntimeException("Sending " + command + " command unsuccessful, get status code: " + status.value());
-        } catch (Throwable e) {
-            errorCallback.accept(e);
-        }
+
+        return sendPost(address, params, callback);
     }
 
-    private HttpStatus sendPost(String address, ParticipantRequestParams params, ListenableFutureCallback<ResponseEntity<String>> callback) throws ExecutionException, InterruptedException {
+    private ListenableFuture sendPost(String address, ParticipantRequestParams params, ListenableFutureCallback<ResponseEntity<String>> callback) {
         log.info("Sending command {} to {}", params.getCommand(), address);
         HttpEntity<ParticipantRequestParams> req = new HttpEntity<>(params);
         ListenableFuture<ResponseEntity<String>> future = restTemplate.postForEntity(address, req, String.class);
         future.addCallback(callback);
-        return future.get().getStatusCode();
+        return future;
     }
 }
