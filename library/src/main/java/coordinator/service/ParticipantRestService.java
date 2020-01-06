@@ -21,7 +21,7 @@ public class ParticipantRestService {
 
     private AsyncRestTemplate restTemplate = new AsyncRestTemplate();
 
-    public void sendCommand(Participant participant, String message, ParticipantCommand command,
+    public void sendCommand(String resourceManagerId, String transactionId, String address, String message, ParticipantCommand command,
                             Consumer<ResponseEntity<String>> successCallback,
                             Consumer<Throwable> errorCallback) {
         ListenableFutureCallback<ResponseEntity<String>> callback = new ListenableFutureCallback<>() {
@@ -36,9 +36,9 @@ public class ParticipantRestService {
                 errorCallback.accept(ex);
             }
         };
-        ParticipantRequestParams params = new ParticipantRequestParams(participant.getTransactionId(), participant.getManagerId(), command, message);
+        ParticipantRequestParams params = new ParticipantRequestParams(transactionId, resourceManagerId, command, message);
         try {
-            HttpStatus status = sendPost(participant.getAddress(), params, callback);
+            HttpStatus status = sendPost(address, params, callback);
             if (!status.is2xxSuccessful())
                 throw new RuntimeException("Sending " + command + " command unsuccessful, get status code: " + status.value());
         } catch (Throwable e) {

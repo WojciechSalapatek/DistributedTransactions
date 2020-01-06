@@ -1,6 +1,5 @@
 package coordinator.service;
 
-import coordinator.model.Participant;
 import coordinator.model.ParticipantCommand;
 import coordinator.model.ParticipantStatus;
 import lombok.EqualsAndHashCode;
@@ -21,17 +20,20 @@ import static coordinator.model.ParticipantStatus.*;
 public class TransactionHandler extends Thread {
 
     @NonNull
+    private String id;
+    @NonNull
     private int expected_participants;
     @NonNull
     private ParticipantRestService participantService;
     @NonNull
-    private ConcurrentMap<Participant, ParticipantStatus> participants;
+    private ConcurrentMap<String, ParticipantStatus> participants;
     @NonNull
-    private Participant master;
+    private String initializerId;
 
-
+    @Value("${resourceHandler.id}")
+    private String address = "http://localhost:8081/manager/rm1";
     @Value("${coordinator.config.sleeptime}")
-    private int sleepTime = 200;
+    private int sleepTime = 2000;
     @Value("${coordinator.config.timeout}")
     private int timeout = 10000;
     private int slept = 0;
@@ -43,14 +45,14 @@ public class TransactionHandler extends Thread {
             sendSuccess();
     }
 
-    public void registerParticipant(Participant participant) {
-        participants.put(participant, ParticipantStatus.INIT);
+    public void registerParticipant(String participantId) {
+        participants.put(participantId, ParticipantStatus.INIT);
     }
 
     private boolean waitForAllParticipantsToRegister(){
         if (!sleep(() -> participants.size() < expected_participants)) {
-            log.error("Waiting for all participants to register for tansaction {} failed", master.getTransactionId());
-            participantService.sendCommand(master, "Waiting for all participants to register failed", ERROR_INITIALIZING,
+            log.error("Waiting for all participants to register for tansaction {} failed", id);
+            participantService.sendCommand(initializerId, id, address, "Waiting for all participants to register failed", ERROR_INITIALIZING,
                     s -> {},
                     th -> {});
             return false;
@@ -62,19 +64,16 @@ public class TransactionHandler extends Thread {
         participants.keySet().forEach(
                 (p) -> {
                     participants.put(p, ParticipantStatus.STARTED);
-                    participantService.sendCommand(p, "START command", START,
+                    participantService.sendCommand(p, id, address, "START command", START,
                             s -> receiveOkStatusForParticipant(p),
                             throwable -> {
-                                log.error("Start command for {} failed due to {}", p.getAddress(), throwable.getMessage());
+                                log.error("Start command for {} failed due to {}", address, throwable.getMessage());
                                 participants.put(p, ERROR);
                             });
                 });
 
         boolean startUnsuccessful = !sleep(
-                () -> !participants
-                        .values()
-                        .stream()
-                        .allMatch(v -> v == WAITING_FOR_COMMIT)
+                () -> !areParticipants(WAITING_FOR_COMMIT)
         );
 
         if (startUnsuccessful) {
@@ -87,19 +86,16 @@ public class TransactionHandler extends Thread {
     private boolean sendCommitCommands(){
         participants.keySet().forEach(
                 (p) -> {
-                    participantService.sendCommand(p, "COMMIT command", ParticipantCommand.COMMIT,
+                    participantService.sendCommand(p, id, address, "COMMIT command", ParticipantCommand.COMMIT,
                             s -> participants.put(p, ParticipantStatus.COMMITED),
                             throwable -> {
-                                log.error("Sending commit for {} failed due to {}", p.getAddress(), throwable.getMessage());
+                                log.error("Sending commit for {} failed due to {}", address, throwable.getMessage());
                                 participants.put(p, ERROR);
                             }
                     );
                 });
         boolean commitUnsuccessful = !sleep(
-                () -> !participants
-                        .values()
-                        .stream()
-                        .allMatch(v -> v == COMMITED)
+                () -> !areParticipants(COMMITED)
         );
         if (commitUnsuccessful) {
             timeoutExceeded();
@@ -108,22 +104,29 @@ public class TransactionHandler extends Thread {
         return true;
     }
 
+    private boolean areParticipants(ParticipantStatus participantStatus) {
+        return participants
+                .values()
+                .stream()
+                .allMatch(v -> v == participantStatus);
+    }
+
     private boolean rollbackAll() {
         log.info("Rollbacking");
         participants.keySet()
                 .forEach((p) ->
-                        participantService.sendCommand(p, "ROLLBACK comand", ParticipantCommand.ROLLBACK,
+                        participantService.sendCommand(p, id, address, "ROLLBACK comand", ParticipantCommand.ROLLBACK,
                                 s -> participants.put(p, ROLLBACKED),
                                 throwable -> {
-                                    log.error("Rollbacking for {} failed due to {}", p.getAddress(), throwable.getMessage());
+                                    log.error("Rollbacking for {} failed due to {}", address, throwable.getMessage());
                                     participants.put(p, ERROR);
                                 }));
-        return sleep(() -> !participants.values().stream().allMatch(v -> v == ROLLBACKED));
+        return sleep(() -> !areParticipants(ROLLBACKED));
     }
 
     private void sendSuccess(){
-        log.info("Transaction {} ended successfully", participants.keySet().stream().findFirst().get().getTransactionId());
-        participantService.sendCommand(master, "SUCCESS command", SUCCESS,
+        log.info("Transaction {} ended successfully", id);
+        participantService.sendCommand(initializerId, id, address, "SUCCESS command", SUCCESS,
                 s -> {},
                 th -> {});
     }
@@ -143,29 +146,29 @@ public class TransactionHandler extends Thread {
         return true;
     }
 
-    private void receiveOkStatusForParticipant(Participant participant) {
-        log.info("Received ok status from {} for transaction {}", participant.getAddress(), participant.getTransactionId());
-        participants.put(participant, WAITING_FOR_COMMIT);
+    private void receiveOkStatusForParticipant(String resourceManagerId) {
+        log.info("Received ok status from {}", address);
+        participants.put(resourceManagerId, WAITING_FOR_COMMIT);
     }
 
     private void timeoutExceeded() {
         log.error("Waiting timeout {} exceeded, participants states: ", timeout);
         participants.forEach(
-                (k, v) -> log.error("{}: {}", k.getAddress(), v.getStatus())
+                (k, v) -> log.error("{}: {}", address, v.getStatus())
         );
         rollbackAll();
         if (rollbackAll()) {
             log.info("Intermediate changes was successfully rollbacked");
-            participantService.sendCommand(master, "Intermediate changes was successfully rollbacked", ERROR_ROLLBACKED,
+            participantService.sendCommand(initializerId, id, address, "Intermediate changes was successfully rollbacked", ERROR_ROLLBACKED,
                     s -> {},
                     th -> {});
         } else {
             StringBuilder message = new StringBuilder();
             participants.forEach(
-                    (k, v) -> message.append(String.format("%s : %s, ", k.getAddress(), v.getStatus()))
+                    (k, v) -> message.append(String.format("%s : %s, ", address, v.getStatus()))
             );
             log.error("Error during rollbacking, state: {}", message.toString());
-            participantService.sendCommand(master, message.toString(), ERROR_INCONSISTENT_STATE,
+            participantService.sendCommand(initializerId, id, address, message.toString(), ERROR_INCONSISTENT_STATE,
                     s -> {},
                     th -> {});
         }

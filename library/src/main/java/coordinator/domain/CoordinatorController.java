@@ -28,8 +28,8 @@ public class CoordinatorController {
 
     @PostMapping("/coordinator/transaction/{id}/register")
     public void registerParticipant(@PathVariable String id, @RequestBody Participant participant) {
-        log.info("Registering participant {} for transaction {}", participant.getAddress(), id);
-        coordinatorService.getHandlers().get(id).registerParticipant(participant);
+        log.info("Registering participant {} for transaction {}", id);
+        coordinatorService.getHandlers().get(id).registerParticipant(participant.getManagerId());
     }
 
 }

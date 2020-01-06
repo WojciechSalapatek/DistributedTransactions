@@ -3,19 +3,18 @@ package playground.filerm;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import resource.model.resourcemanager.ResourceManager;
-import resource.model.resourcemanager.ResourceManagerFactory;
-import resource.model.statements.FileExecutbleStatement;
+import resource.model.datasource.ResourceManagerService;
+import resource.resourceManagers.FileResourceManager;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 
 @Service
 @AllArgsConstructor(onConstructor = @__(@Autowired))
 public class FirstFileResource {
 
-    private ApplicationContext context;
+    private ResourceManagerService resourceManagerService;
     private SecondFileResource secondFileResource;
 
     @PostConstruct()
@@ -25,11 +24,24 @@ public class FirstFileResource {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        ResourceManager resourceManager = ResourceManagerFactory.fileResourceManager(context);
-        String transactionId = resourceManager.initiateTransaction(2);
-        resourceManager.addExecutableStatement(new FileExecutbleStatement("dummy"));
-        resourceManager.registerForTransaction(transactionId);
-        secondFileResource.start(transactionId);
+
+        try {
+            FileResourceManager resourceManager = new FileResourceManager("1", resourceManagerService,
+                    "C:\\Users\\micha\\IdeaProjects\\DistributedTransactions\\application\\src\\main\\resources\\testfile.txt");
+            String transactionId = resourceManager.initiateTransaction(2);
+            secondFileResource.start(transactionId);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+//
+
+//
+//        try {
+//            FileWriter writer = new FileWriter("dsaad");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
 }

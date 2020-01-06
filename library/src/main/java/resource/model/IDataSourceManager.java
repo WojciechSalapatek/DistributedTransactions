@@ -1,27 +1,18 @@
 package resource.model;
 
-import coordinator.model.TransactionParams;
-import resource.ExecutableStatement;
 import org.springframework.http.ResponseEntity;
+import resource.resourceManagers.IResourceManger;
+import resource.transactions.ParticipantParams;
 
 public interface IDataSourceManager {
 
-    String getId();
+    String initiateTransaction(String resourceManagerId, int participants);
 
-    String initiateTransaction(int participants);
+    void registerForTransaction(String resourceManagerId, String transactionId);
 
-    void registerForTransaction(String transactionId);
+    IResourceManger getResourceManager(String resourceManagerId);
 
-    void addExecutableStatement(ExecutableStatement statement);
+    ResponseEntity<String> beginTransaction(ParticipantParams participantParams) throws Exception;
 
-    void clearStatements();
-
-    ResponseEntity<String> beginTransaction();
-
-    ResponseEntity<String> commit();
-
-
-    ResponseEntity<String> rollback();
-
-    ResponseEntity<String> execute();
+    ResponseEntity<String> commit(ParticipantParams participantParams) throws Exception;
 }
