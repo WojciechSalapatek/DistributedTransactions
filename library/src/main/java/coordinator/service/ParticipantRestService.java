@@ -1,18 +1,15 @@
 package coordinator.service;
 
-import coordinator.model.Participant;
 import coordinator.model.ParticipantCommand;
 import coordinator.model.ParticipantRequestParams;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
 
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 @Slf4j

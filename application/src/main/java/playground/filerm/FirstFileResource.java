@@ -28,6 +28,7 @@ public class FirstFileResource {
         try {
             FileResourceManager resourceManager = new FileResourceManager("1", resourceManagerService,
                     "C:\\Users\\micha\\IdeaProjects\\DistributedTransactions\\application\\src\\main\\resources\\testfile.txt");
+            resourceManager.write("it's working! :) file 1");
             String transactionId = resourceManager.initiateTransaction(2);
             secondFileResource.start(transactionId);
 
