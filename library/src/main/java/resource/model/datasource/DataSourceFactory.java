@@ -1,32 +1,36 @@
-//package resource.model.datasource;
-//
-//import org.springframework.context.ApplicationContext;
-//import org.springframework.web.client.RestTemplate;
-//import resource.model.connection.FileConnection;
-//import resource.service.CoordinatorHandler;
-//
-//import java.util.LinkedList;
-//
-//public class DataSourceFactory {
-//
-//    private static long id = -1;
-//
-//    public static ResourceManagerService fileResourceManager(ApplicationContext context){
-//        String coordId = context.getEnvironment().getProperty("resourceHandler.coordinatorEndpointAddress");
-//        if (coordId == null){
-//            throw new Error("property resourceHandler.coordinatorEndpointAddress must be specified!");
-//        }
-//        String address = context.getEnvironment().getProperty("resourceHandler.id");
-//        if (address == null){
-//            throw new Error("property resourceHandler.id must be specified!");
-//        }
-//        ResourceManagerService fileDt = new ResourceManagerService(Long.toString(nextId()), new FileConnection(), new LinkedList<>(), coordId, new RestTemplate(), context, address);
-//        context.getBean(CoordinatorHandler.class).registerManager(fileDt);
-//        return fileDt;
-//    }
-//
-//    private static long nextId(){
-//        return ++id;
-//    }
-//
-//}
+package resource.model.datasource;
+
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Service;
+import resource.resourceManagers.FileResourceManager;
+import resource.resourceManagers.JDBCResourceManager;
+
+import java.io.IOException;
+import java.sql.Connection;
+
+@Service
+public class DataSourceFactory implements ApplicationContextAware {
+
+    private static ApplicationContext ac;
+    private static long id = -1;
+
+    public static FileResourceManager fileResourceManager(String path) throws IOException {
+        return new FileResourceManager(nextId(), path, ac.getBean(ResourceManagerService.class));
+    }
+
+    public static JDBCResourceManager jdbcResourceManager(Connection connection) throws IOException {
+        return new JDBCResourceManager(nextId(), connection, ac.getBean(ResourceManagerService.class));
+    }
+
+    private static String nextId(){
+        return String.valueOf(++id);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.ac = applicationContext;
+    }
+}

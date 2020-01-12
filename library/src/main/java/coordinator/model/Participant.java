@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Participant {
-    private String managerId; //TODO participantId
+    private String managerId;
     private String transactionId;
 }

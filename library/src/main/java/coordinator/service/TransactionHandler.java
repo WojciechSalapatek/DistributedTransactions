@@ -10,8 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -45,7 +44,7 @@ public class TransactionHandler extends Thread {
     public void run() {
         if (!waitForAllParticipantsToRegister()) return;
         if (!sendStartCommands()) return;
-        if(sendCommitCommands())
+        if (sendCommitCommands())
             sendSuccess();
     }
 
@@ -53,7 +52,7 @@ public class TransactionHandler extends Thread {
         participants.put(participantId, ParticipantStatus.INIT);
     }
 
-    private boolean waitForAllParticipantsToRegister(){
+    private boolean waitForAllParticipantsToRegister() {
         if (!sleep(() -> participants.size() < expected_participants)) {
             log.error("Waiting for all participants to register for tansaction {} failed", id);
             participantService.sendCommand(initializerId, id, address, "Waiting for all participants to register failed", ERROR_INITIALIZING,
@@ -65,19 +64,7 @@ public class TransactionHandler extends Thread {
     }
 
     private boolean sendStartCommands() {
-        List<Object> startedParticipants = participants
-                .keySet()
-                .parallelStream()
-                .map(p -> participantService.sendCommand(p, id, address, "START command", START,
-                        s -> receiveOkStatusForParticipant(p),
-                        throwable -> {
-                            log.error("Start command for {} failed due to {}", address, throwable.getMessage());
-                            participants.put(p, ERROR);
-                        }))
-                .map(p -> p.completable())
-                .map(p -> p.completeOnTimeout(HttpStatus.REQUEST_TIMEOUT, timeout, TimeUnit.MILLISECONDS))
-                .map(p -> p.join())
-                .collect(Collectors.toList());
+        List<Object> startedParticipants = sendHelper("START command", START, "Start command for {} failed due to {}");
 
         if (startedParticipants.contains(HttpStatus.REQUEST_TIMEOUT)) {
             timeoutExceeded();
@@ -89,19 +76,7 @@ public class TransactionHandler extends Thread {
     }
 
     private boolean sendCommitCommands(){
-        List<Object> commitedParticipants = participants
-                .keySet()
-                .parallelStream()
-                .map(p -> participantService.sendCommand(p, id, address, "COMMIT command", ParticipantCommand.COMMIT,
-                        s -> receiveOkStatusForParticipant(p),
-                        throwable -> {
-                            log.error("Sending commit for {} failed due to {}", address, throwable.getMessage());
-                            participants.put(p, ERROR);
-                        }))
-                .map(p -> p.completable())
-                .map(p -> p.completeOnTimeout(HttpStatus.REQUEST_TIMEOUT, timeout, TimeUnit.MILLISECONDS))
-                .map(p -> p.join())
-                .collect(Collectors.toList());
+        List<Object> commitedParticipants = sendHelper("COMMIT command", ParticipantCommand.COMMIT, "Sending commit for {} failed due to {}");
 
         if (commitedParticipants.contains(HttpStatus.REQUEST_TIMEOUT)) {
             timeoutExceeded();
@@ -114,20 +89,24 @@ public class TransactionHandler extends Thread {
 
     private boolean rollbackAll() {
         log.info("Rollbacking");
-        List<Object> rollbackedParticipants = participants
+        List<Object> rollbackedParticipants = sendHelper("COMMIT command", ParticipantCommand.COMMIT, "Sending commit for {} failed due to {}");
+        return !rollbackedParticipants.contains(HttpStatus.REQUEST_TIMEOUT);
+    }
+
+    private List<Object> sendHelper(String s2, ParticipantCommand start, String s3) {
+        return participants
                 .keySet()
                 .parallelStream()
-                .map(p -> participantService.sendCommand(p, id, address, "COMMIT command", ParticipantCommand.COMMIT,
+                .map(p -> participantService.sendCommand(p, id, address, s2, start,
                         s -> receiveOkStatusForParticipant(p),
                         throwable -> {
-                            log.error("Sending commit for {} failed due to {}", address, throwable.getMessage());
+                            log.error(s3, address, throwable.getMessage());
                             participants.put(p, ERROR);
                         }))
                 .map(p -> p.completable())
                 .map(p -> p.completeOnTimeout(HttpStatus.REQUEST_TIMEOUT, timeout, TimeUnit.MILLISECONDS))
                 .map(p -> p.join())
-                .collect(Collectors.toList());
-        return !rollbackedParticipants.contains(HttpStatus.REQUEST_TIMEOUT);
+                .collect(Collectors.toList()); //TODO: consider this
     }
 
     private void sendSuccess(){

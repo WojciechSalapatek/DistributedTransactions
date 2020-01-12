@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
+import resource.model.datasource.DataSourceFactory;
 import resource.model.datasource.ResourceManagerService;
 import resource.resourceManagers.FileResourceManager;
 
@@ -18,8 +19,9 @@ public class SecondFileResource {
     public void start(String transactionId) {
 
         try {
-            FileResourceManager resourceManager = new FileResourceManager("2", resourceManagerService,
-                    "C:\\Users\\micha\\IdeaProjects\\DistributedTransactions\\application\\src\\main\\resources\\testfile1.txt");
+            FileResourceManager resourceManager = DataSourceFactory
+                    .fileResourceManager("C:\\Users\\micha\\IdeaProjects\\DistributedTransactions\\application\\src\\main\\resources\\testfile1.txt");
+
             resourceManager.write("it's working!");
             resourceManager.registerForTransaction(transactionId);
 

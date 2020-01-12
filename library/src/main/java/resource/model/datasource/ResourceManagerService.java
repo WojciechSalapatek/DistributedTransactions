@@ -1,14 +1,17 @@
 package resource.model.datasource;
 
 import coordinator.model.Participant;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import resource.model.IDataSourceManager;
 import resource.resourceManagers.IResourceManger;
@@ -19,8 +22,8 @@ import java.util.HashMap;
 import java.util.function.Function;
 
 @Slf4j
-@Component
-@NoArgsConstructor
+@Service
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ResourceManagerService implements IDataSourceManager {
 
     @Getter
@@ -28,7 +31,7 @@ public class ResourceManagerService implements IDataSourceManager {
     private String coordinatorEndpointAddress;
 
     private final HashMap<String, IResourceManger> resourceMangers = new HashMap<>();
-    private final RestTemplate coordinatorEndpoint = new RestTemplate();
+    private final RestTemplate coordinatorEndpoint;
 
     private static final String createTransactionSuffix = "/createTransaction";
     private static final Function<String, String> createRegisterSuffix = (id) -> "/transaction/" + id + "/register";
@@ -57,7 +60,6 @@ public class ResourceManagerService implements IDataSourceManager {
         return resourceMangers.get(resourceManagerId);
     }
 
-    //TODO: handle error
     @Override
     public ResponseEntity<String> beginTransaction(ParticipantParams participantParams) throws Exception {
         IResourceManger resourceManager = resourceMangers.get(participantParams.getParticipantId());
@@ -70,9 +72,13 @@ public class ResourceManagerService implements IDataSourceManager {
     public ResponseEntity<String> commit(ParticipantParams participantParams) throws Exception {
         IResourceManger resourceManager = resourceMangers.get(participantParams.getParticipantId());
         resourceManager.execute();
-        return new ResponseEntity<String>(HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
-
-
+    @Override
+    public ResponseEntity<String> rollback(ParticipantParams participantParams) throws Exception {
+        IResourceManger resourceManager = resourceMangers.get(participantParams.getParticipantId());
+        resourceManager.rollback();
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+    }
 
 }

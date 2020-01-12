@@ -2,9 +2,8 @@ package playground.filerm;
 
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-import resource.model.datasource.ResourceManagerService;
+import resource.model.datasource.DataSourceFactory;
 import resource.resourceManagers.FileResourceManager;
 
 import javax.annotation.PostConstruct;
@@ -14,7 +13,6 @@ import java.io.IOException;
 @AllArgsConstructor(onConstructor = @__(@Autowired))
 public class FirstFileResource {
 
-    private ResourceManagerService resourceManagerService;
     private SecondFileResource secondFileResource;
 
     @PostConstruct()
@@ -26,8 +24,8 @@ public class FirstFileResource {
         }
 
         try {
-            FileResourceManager resourceManager = new FileResourceManager("1", resourceManagerService,
-                    "C:\\Users\\micha\\IdeaProjects\\DistributedTransactions\\application\\src\\main\\resources\\testfile.txt");
+            FileResourceManager resourceManager = DataSourceFactory
+                    .fileResourceManager("C:\\Users\\micha\\IdeaProjects\\DistributedTransactions\\application\\src\\main\\resources\\testfile.txt");
             resourceManager.write("it's working! :) file 1");
             String transactionId = resourceManager.initiateTransaction(2);
             secondFileResource.start(transactionId);
@@ -35,14 +33,6 @@ public class FirstFileResource {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//
-
-//
-//        try {
-//            FileWriter writer = new FileWriter("dsaad");
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
     }
 
 }

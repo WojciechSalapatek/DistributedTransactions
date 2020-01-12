@@ -15,4 +15,6 @@ public interface IDataSourceManager {
     ResponseEntity<String> beginTransaction(ParticipantParams participantParams) throws Exception;
 
     ResponseEntity<String> commit(ParticipantParams participantParams) throws Exception;
+
+    ResponseEntity<String> rollback(ParticipantParams participantParams) throws Exception;
 }

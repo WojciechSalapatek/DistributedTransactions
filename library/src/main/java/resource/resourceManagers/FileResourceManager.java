@@ -1,7 +1,9 @@
 package resource.resourceManagers;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import resource.model.datasource.ResourceManagerService;
 
 import java.io.File;
@@ -11,21 +13,20 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.stream.Collectors;
 
 public class FileResourceManager implements IResourceManger {
 
     @Getter
     private final String id;
-    private final ResourceManagerService resourceManagerService;
+    private ResourceManagerService resourceManagerService;
     private Queue<String> queue = new LinkedList<>();
-    private Path path;
+    private final Path path;
     private Path tmpPath;
 
-    public FileResourceManager(String id, ResourceManagerService resourceManagerService, String path) throws IOException {
+    public FileResourceManager(String id, String path, ResourceManagerService resourceManagerService){
         this.id = id;
-        this.resourceManagerService = resourceManagerService;
         this.path = Paths.get(path);
+        this.resourceManagerService = resourceManagerService;
         resourceManagerService.addResourceManager(this);
     }
 
