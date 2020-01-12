@@ -47,7 +47,7 @@ public class FileResourceManager implements IResourceManger {
     @Override
     public void checkDataSource() throws Exception {
         if (!checkFile(path.toFile())) {
-            throw new Exception("File " + path + " does not exist");
+            throw new Exception("File " + path + " is not accessible");
         }
     }
 
@@ -71,7 +71,7 @@ public class FileResourceManager implements IResourceManger {
     }
 
     private void createTmpPath(Path path) {
-        tmpPath = Paths.get(path.toString() + "/" + RandomStringUtils.random(10));
+        tmpPath = Paths.get(path.toString() + "/" + RandomStringUtils.random(16));
     }
 
     private boolean checkFile(File file) {

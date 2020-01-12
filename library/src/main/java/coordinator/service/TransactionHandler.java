@@ -57,6 +57,10 @@ public class TransactionHandler extends Thread {
         participants.put(participant, ParticipantStatus.INIT);
     }
 
+    private boolean participantsOk(){
+        return participants.values().stream().noneMatch((v) -> v == ERROR);
+    }
+
     private boolean waitForAllParticipantsToRegister() {
         if (!sleep(() -> participants.size() < expected_participants)) {
             log.error("[transaction {}] Waiting for all participants to register for tansaction failed", id);
@@ -65,7 +69,7 @@ public class TransactionHandler extends Thread {
                     th -> {});
             return false;
         }
-        log.warn("[transaction {}] All participants registered", id);
+        log.info("[transaction {}] All participants registered", id);
         return true;
     }
 
@@ -73,7 +77,7 @@ public class TransactionHandler extends Thread {
         log.info("[transaction {}] Preparing", id);
         List<ResponseEntity<String>> startedParticipants = sendHelper("START command", START, "Start command for {} failed due to {}");
 
-        if (startedParticipants.contains(ERROR_STATUS)) {
+        if (startedParticipants.contains(ERROR_STATUS) || !participantsOk()) {
             timeoutExceeded();
             return false;
         } else {
@@ -86,7 +90,7 @@ public class TransactionHandler extends Thread {
         log.info("[transaction {}] Committing", id);
         List<ResponseEntity<String>> commitedParticipants = sendHelper("COMMIT command", ParticipantCommand.COMMIT, "Sending commit for {} failed due to {}");
 
-        if (commitedParticipants.contains(ERROR_STATUS)) {
+        if (commitedParticipants.contains(ERROR_STATUS) || !participantsOk()) {
             timeoutExceeded();
             return false;
         } else {

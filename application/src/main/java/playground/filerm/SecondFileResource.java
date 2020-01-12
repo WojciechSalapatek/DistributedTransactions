@@ -10,17 +10,16 @@ import resource.resourceManagers.FileResourceManager;
 
 import java.io.IOException;
 
-@Service
 @AllArgsConstructor(onConstructor = @__(@Autowired))
 public class SecondFileResource {
 
-    private ResourceManagerService resourceManagerService;
+    private String path;
 
     public void start(String transactionId) {
 
         try {
             FileResourceManager resourceManager = DataSourceFactory
-                    .fileResourceManager("C:\\Users\\DELL\\Desktop\\GitHub\\distransactions\\application\\src\\main\\resources\\testfile1.txt");
+                    .fileResourceManager(path);
 
             resourceManager.write("it's working!");
             resourceManager.registerForTransaction(transactionId);

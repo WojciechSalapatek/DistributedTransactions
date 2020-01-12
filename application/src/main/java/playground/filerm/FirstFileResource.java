@@ -9,23 +9,21 @@ import resource.resourceManagers.FileResourceManager;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 
-@Service
 @AllArgsConstructor(onConstructor = @__(@Autowired))
-public class FirstFileResource {
+public class FirstFileResource implements Runnable{
 
+    private String path;
     private SecondFileResource secondFileResource;
 
-    @PostConstruct()
-    void start() {
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    public void run() {
+//        try {
+//            Thread.sleep(500);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
         try {
-            FileResourceManager resourceManager = DataSourceFactory
-                    .fileResourceManager("C:\\Users\\DELL\\Desktop\\GitHub\\distransactions\\application\\src\\main\\resources\\testfile.txt");
+            FileResourceManager resourceManager = DataSourceFactory.fileResourceManager(path);
             resourceManager.write("it's working! :) file 1");
             String transactionId = resourceManager.initiateTransaction(2);
             secondFileResource.start(transactionId);
