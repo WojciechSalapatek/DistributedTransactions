@@ -28,6 +28,7 @@ public class FileResourceManager implements IResourceManger {
         this.path = Paths.get(path);
         this.resourceManagerService = resourceManagerService;
         resourceManagerService.addResourceManager(this);
+        createTmpPath(this.path.getParent());
     }
 
     public void write(String abc) throws IOException {
@@ -53,7 +54,6 @@ public class FileResourceManager implements IResourceManger {
 
     @Override
     public void commit() throws Exception {
-        createTmpPath(path.getParent());
         Files.copy(path, tmpPath);
         Files.writeString(tmpPath, String.join("\n", queue));
         queue.clear();
@@ -61,7 +61,7 @@ public class FileResourceManager implements IResourceManger {
 
     @Override
     public void rollback() throws Exception {
-        Files.delete(tmpPath);
+        if(Files.exists(tmpPath)) Files.delete(tmpPath);
     }
 
     @Override
@@ -71,7 +71,7 @@ public class FileResourceManager implements IResourceManger {
     }
 
     private void createTmpPath(Path path) {
-        tmpPath = Paths.get(path.toString() + "/" + RandomStringUtils.random(16));
+        tmpPath = Paths.get(path.toString() + "/" + RandomStringUtils.randomAlphanumeric(16));
     }
 
     private boolean checkFile(File file) {

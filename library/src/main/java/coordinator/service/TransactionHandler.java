@@ -75,7 +75,7 @@ public class TransactionHandler extends Thread {
 
     private boolean sendStartCommands() {
         log.info("[transaction {}] Preparing", id);
-        List<ResponseEntity<String>> startedParticipants = sendHelper("START command", START, "Start command for {} failed due to {}");
+        List<ResponseEntity<String>> startedParticipants = sendHelper("START command", START, "[transaction {}] Start command for {} failed due to {}");
 
         if (startedParticipants.contains(ERROR_STATUS) || !participantsOk()) {
             timeoutExceeded();
@@ -88,7 +88,7 @@ public class TransactionHandler extends Thread {
 
     private boolean sendCommitCommands(){
         log.info("[transaction {}] Committing", id);
-        List<ResponseEntity<String>> commitedParticipants = sendHelper("COMMIT command", ParticipantCommand.COMMIT, "Sending commit for {} failed due to {}");
+        List<ResponseEntity<String>> commitedParticipants = sendHelper("COMMIT command", ParticipantCommand.COMMIT, "[transaction {}] Commit for {} failed due to {}");
 
         if (commitedParticipants.contains(ERROR_STATUS) || !participantsOk()) {
             timeoutExceeded();
@@ -101,7 +101,7 @@ public class TransactionHandler extends Thread {
 
     private boolean rollbackAll() {
         log.warn("[transaction {}] Rollbacking", id);
-        List<ResponseEntity<String>> rollbackedParticipants = sendHelper("Rollback command", ParticipantCommand.ROLLBACK, "Sending rollback for {} failed due to {}");
+        List<ResponseEntity<String>> rollbackedParticipants = sendHelper("Rollback command", ParticipantCommand.ROLLBACK, "[transaction {}] Rollback for {} failed due to {}");
         return !rollbackedParticipants.contains(ERROR_STATUS);
     }
 
@@ -112,7 +112,7 @@ public class TransactionHandler extends Thread {
                 .map(p -> participantService.sendCommand(p.getManagerId(), id, p.getAddress(), message, command,
                         s -> receiveOkStatusForParticipant(p),
                         throwable -> {
-                            log.error(errorMessage, p.getAddress(), throwable.getMessage());
+                            log.error(errorMessage, id, p.getAddress(), throwable.getMessage());
                             participants.put(p, ERROR);
                         }))
                 .map(ListenableFuture::completable)
@@ -154,7 +154,6 @@ public class TransactionHandler extends Thread {
         participants.forEach(
                 (k, v) -> log.error("{}: {}", k.getAddress(), v.getStatus())
         );
-        rollbackAll();
         if (rollbackAll()) {
             log.info("[transaction {}] Intermediate changes was successfully rollbacked", id);
             participantService.sendCommand(initializerId, id, initializerAddress, "Intermediate changes was successfully rollbacked", ERROR_ROLLBACKED,
