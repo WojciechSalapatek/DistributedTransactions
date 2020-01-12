@@ -75,7 +75,8 @@ public class TransactionHandler extends Thread {
 
     private boolean sendStartCommands() {
         log.info("[transaction {}] Preparing", id);
-        List<ResponseEntity<String>> startedParticipants = sendHelper("START command", START, "[transaction {}] Start command for {} failed due to {}");
+        List<ResponseEntity<String>> startedParticipants = sendHelper("START command", START,
+                "[transaction {}] Start command for {} failed due to {}", STARTED);
 
         if (startedParticipants.contains(ERROR_STATUS) || !participantsOk()) {
             timeoutExceeded();
@@ -88,7 +89,8 @@ public class TransactionHandler extends Thread {
 
     private boolean sendCommitCommands(){
         log.info("[transaction {}] Committing", id);
-        List<ResponseEntity<String>> commitedParticipants = sendHelper("COMMIT command", ParticipantCommand.COMMIT, "[transaction {}] Commit for {} failed due to {}");
+        List<ResponseEntity<String>> commitedParticipants = sendHelper("COMMIT command", ParticipantCommand.COMMIT,
+                "[transaction {}] Commit for {} failed due to {}", COMMITED);
 
         if (commitedParticipants.contains(ERROR_STATUS) || !participantsOk()) {
             timeoutExceeded();
@@ -101,16 +103,18 @@ public class TransactionHandler extends Thread {
 
     private boolean rollbackAll() {
         log.warn("[transaction {}] Rollbacking", id);
-        List<ResponseEntity<String>> rollbackedParticipants = sendHelper("Rollback command", ParticipantCommand.ROLLBACK, "[transaction {}] Rollback for {} failed due to {}");
+        List<ResponseEntity<String>> rollbackedParticipants = sendHelper("Rollback command", ParticipantCommand.ROLLBACK,
+                "[transaction {}] Rollback for {} failed due to {}", ROLLBACKED);
         return !rollbackedParticipants.contains(ERROR_STATUS);
     }
 
-    private List<ResponseEntity<String>> sendHelper(String message, ParticipantCommand command, String errorMessage) {
+    private List<ResponseEntity<String>> sendHelper(String message, ParticipantCommand command,
+                                                    String errorMessage, ParticipantStatus status) {
         return participants
                 .keySet()
                 .parallelStream()
                 .map(p -> participantService.sendCommand(p.getManagerId(), id, p.getAddress(), message, command,
-                        s -> receiveOkStatusForParticipant(p),
+                        s -> receiveOkStatusForParticipant(p, status),
                         throwable -> {
                             log.error(errorMessage, id, p.getAddress(), throwable.getMessage());
                             participants.put(p, ERROR);
@@ -143,10 +147,10 @@ public class TransactionHandler extends Thread {
         return true;
     }
 
-    private void receiveOkStatusForParticipant(Participant participant) {
+    private void receiveOkStatusForParticipant(Participant participant, ParticipantStatus status) {
         log.debug("[transaction {}] Received ok status from {} - id {}",
                 participant.getAddress(), participant.getManagerId(), id);
-        participants.put(participant, WAITING_FOR_COMMIT);
+        participants.put(participant, status);
     }
 
     private void timeoutExceeded() {

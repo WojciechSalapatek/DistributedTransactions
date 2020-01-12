@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 @Service
@@ -22,6 +25,7 @@ public class CoordinatorService {
     private ParticipantRestService participantService;
     @Getter
     Map<String, TransactionHandler> handlers = new HashMap<>();
+    private final ExecutorService executor = Executors.newFixedThreadPool(20);
 
     public synchronized static String getNextId() {
         return Long.toString(id++);
@@ -35,7 +39,7 @@ public class CoordinatorService {
                 params.getMaster().getAddress()
         );
         handler.registerParticipant(params.getMaster());
-        handler.start();
+        executor.submit(handler);
         log.info("Created handler [participants: {}] for transactionId : {}, Master {} with id {}",
                 params.getParticipants(), transactionId, params.getMaster().getAddress(), params.getMaster().getManagerId());
         handlers.put(transactionId, handler);
