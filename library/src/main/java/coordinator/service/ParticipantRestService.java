@@ -18,7 +18,7 @@ public class ParticipantRestService {
 
     private AsyncRestTemplate restTemplate = new AsyncRestTemplate();
 
-    public ListenableFuture sendCommand(String resourceManagerId, String transactionId, String address, String message, ParticipantCommand command,
+    public ListenableFuture<ResponseEntity<String>> sendCommand(String resourceManagerId, String transactionId, String address, String message, ParticipantCommand command,
                             Consumer<ResponseEntity<String>> successCallback,
                             Consumer<Throwable> errorCallback) {
         CoordinatorListenableFutureCallback callback = new CoordinatorListenableFutureCallback(errorCallback, successCallback);
@@ -27,8 +27,8 @@ public class ParticipantRestService {
         return sendPost(address, params, callback);
     }
 
-    private ListenableFuture sendPost(String address, ParticipantRequestParams params, ListenableFutureCallback<ResponseEntity<String>> callback) {
-        log.info("Sending command {} to {}", params.getCommand(), address);
+    private ListenableFuture<ResponseEntity<String>> sendPost(String address, ParticipantRequestParams params, ListenableFutureCallback<ResponseEntity<String>> callback) {
+        log.debug("Sending command {} to {} with id {}", params.getCommand(), address, params.getManagerId());
         HttpEntity<ParticipantRequestParams> req = new HttpEntity<>(params);
         ListenableFuture<ResponseEntity<String>> future = restTemplate.postForEntity(address, req, String.class);
         future.addCallback(callback);

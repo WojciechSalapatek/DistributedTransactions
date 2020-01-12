@@ -1,5 +1,6 @@
 package coordinator.service;
 
+import coordinator.model.Participant;
 import coordinator.model.ParticipantCommand;
 import coordinator.model.ParticipantStatus;
 import lombok.EqualsAndHashCode;
@@ -8,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import java.util.List;
 import java.util.concurrent.*;
@@ -29,17 +32,19 @@ public class TransactionHandler extends Thread {
     @NonNull
     private ParticipantRestService participantService;
     @NonNull
-    private ConcurrentMap<String, ParticipantStatus> participants;
+    private ConcurrentMap<Participant, ParticipantStatus> participants;
     @NonNull
     private String initializerId;
+    @NonNull
+    private String initializerAddress;
 
-    @Value("${resourceHandler.id}")
-    private String address = "http://localhost:8081/manager/rm1";
     @Value("${coordinator.config.sleeptime}")
     private int sleepTime = 2000;
     @Value("${coordinator.config.timeout}")
     private int timeout = 1000;
     private int slept = 0;
+
+    public static final ResponseEntity<String> ERROR_STATUS =  ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).build();
 
     public void run() {
         if (!waitForAllParticipantsToRegister()) return;
@@ -48,25 +53,27 @@ public class TransactionHandler extends Thread {
             sendSuccess();
     }
 
-    public void registerParticipant(String participantId) {
-        participants.put(participantId, ParticipantStatus.INIT);
+    public void registerParticipant(Participant participant) {
+        participants.put(participant, ParticipantStatus.INIT);
     }
 
     private boolean waitForAllParticipantsToRegister() {
         if (!sleep(() -> participants.size() < expected_participants)) {
-            log.error("Waiting for all participants to register for tansaction {} failed", id);
-            participantService.sendCommand(initializerId, id, address, "Waiting for all participants to register failed", ERROR_INITIALIZING,
+            log.error("[transaction {}] Waiting for all participants to register for tansaction failed", id);
+            participantService.sendCommand(initializerId, id, initializerAddress, "Waiting for all participants to register failed", ERROR_INITIALIZING,
                     s -> {},
                     th -> {});
             return false;
         }
+        log.warn("[transaction {}] All participants registered", id);
         return true;
     }
 
     private boolean sendStartCommands() {
-        List<Object> startedParticipants = sendHelper("START command", START, "Start command for {} failed due to {}");
+        log.info("[transaction {}] Preparing", id);
+        List<ResponseEntity<String>> startedParticipants = sendHelper("START command", START, "Start command for {} failed due to {}");
 
-        if (startedParticipants.contains(HttpStatus.REQUEST_TIMEOUT)) {
+        if (startedParticipants.contains(ERROR_STATUS)) {
             timeoutExceeded();
             return false;
         } else {
@@ -76,9 +83,10 @@ public class TransactionHandler extends Thread {
     }
 
     private boolean sendCommitCommands(){
-        List<Object> commitedParticipants = sendHelper("COMMIT command", ParticipantCommand.COMMIT, "Sending commit for {} failed due to {}");
+        log.info("[transaction {}] Committing", id);
+        List<ResponseEntity<String>> commitedParticipants = sendHelper("COMMIT command", ParticipantCommand.COMMIT, "Sending commit for {} failed due to {}");
 
-        if (commitedParticipants.contains(HttpStatus.REQUEST_TIMEOUT)) {
+        if (commitedParticipants.contains(ERROR_STATUS)) {
             timeoutExceeded();
             return false;
         } else {
@@ -88,30 +96,30 @@ public class TransactionHandler extends Thread {
     }
 
     private boolean rollbackAll() {
-        log.info("Rollbacking");
-        List<Object> rollbackedParticipants = sendHelper("COMMIT command", ParticipantCommand.COMMIT, "Sending commit for {} failed due to {}");
-        return !rollbackedParticipants.contains(HttpStatus.REQUEST_TIMEOUT);
+        log.warn("[transaction {}] Rollbacking", id);
+        List<ResponseEntity<String>> rollbackedParticipants = sendHelper("Rollback command", ParticipantCommand.ROLLBACK, "Sending rollback for {} failed due to {}");
+        return !rollbackedParticipants.contains(ERROR_STATUS);
     }
 
-    private List<Object> sendHelper(String s2, ParticipantCommand start, String s3) {
+    private List<ResponseEntity<String>> sendHelper(String message, ParticipantCommand command, String errorMessage) {
         return participants
                 .keySet()
                 .parallelStream()
-                .map(p -> participantService.sendCommand(p, id, address, s2, start,
+                .map(p -> participantService.sendCommand(p.getManagerId(), id, p.getAddress(), message, command,
                         s -> receiveOkStatusForParticipant(p),
                         throwable -> {
-                            log.error(s3, address, throwable.getMessage());
+                            log.error(errorMessage, p.getAddress(), throwable.getMessage());
                             participants.put(p, ERROR);
                         }))
-                .map(p -> p.completable())
-                .map(p -> p.completeOnTimeout(HttpStatus.REQUEST_TIMEOUT, timeout, TimeUnit.MILLISECONDS))
-                .map(p -> p.join())
+                .map(ListenableFuture::completable)
+                .map(p -> p.completeOnTimeout(ERROR_STATUS, timeout, TimeUnit.MILLISECONDS))
+                .map(CompletableFuture::join)
                 .collect(Collectors.toList()); //TODO: consider this
     }
 
     private void sendSuccess(){
-        log.info("Transaction {} ended successfully", id);
-        participantService.sendCommand(initializerId, id, address, "SUCCESS command", SUCCESS,
+        log.info("[transaction {}] Transaction ended successfully", id);
+        participantService.sendCommand(initializerId, id, initializerAddress, "SUCCESS command", SUCCESS,
                 s -> {},
                 th -> {});
     }
@@ -131,29 +139,30 @@ public class TransactionHandler extends Thread {
         return true;
     }
 
-    private void receiveOkStatusForParticipant(String resourceManagerId) {
-        log.info("Received ok status from {}", address);
-        participants.put(resourceManagerId, WAITING_FOR_COMMIT);
+    private void receiveOkStatusForParticipant(Participant participant) {
+        log.debug("[transaction {}] Received ok status from {} - id {}",
+                participant.getAddress(), participant.getManagerId(), id);
+        participants.put(participant, WAITING_FOR_COMMIT);
     }
 
     private void timeoutExceeded() {
-        log.error("Waiting timeout {} exceeded, participants states: ", timeout);
+        log.error("[transaction {}] Waiting timeout {} exceeded, participants states: ", id, timeout);
         participants.forEach(
-                (k, v) -> log.error("{}: {}", address, v.getStatus())
+                (k, v) -> log.error("{}: {}", k.getAddress(), v.getStatus())
         );
         rollbackAll();
         if (rollbackAll()) {
-            log.info("Intermediate changes was successfully rollbacked");
-            participantService.sendCommand(initializerId, id, address, "Intermediate changes was successfully rollbacked", ERROR_ROLLBACKED,
+            log.info("[transaction {}] Intermediate changes was successfully rollbacked", id);
+            participantService.sendCommand(initializerId, id, initializerAddress, "Intermediate changes was successfully rollbacked", ERROR_ROLLBACKED,
                     s -> {},
                     th -> {});
         } else {
             StringBuilder message = new StringBuilder();
             participants.forEach(
-                    (k, v) -> message.append(String.format("%s : %s, ", address, v.getStatus()))
+                    (k, v) -> message.append(String.format("%s : %s, ", k.getAddress(), v.getStatus()))
             );
-            log.error("Error during rollbacking, state: {}", message.toString());
-            participantService.sendCommand(initializerId, id, address, message.toString(), ERROR_INCONSISTENT_STATE,
+            log.error("[transaction {}] Error during rollbacking, state: {}", id ,message.toString());
+            participantService.sendCommand(initializerId, id, initializerAddress, message.toString(), ERROR_INCONSISTENT_STATE,
                     s -> {},
                     th -> {});
         }

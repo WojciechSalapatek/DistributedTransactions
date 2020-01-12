@@ -1,6 +1,7 @@
 package resource.model.datasource;
 
 import coordinator.model.Participant;
+import coordinator.model.TransactionParams;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,9 @@ public class ResourceManagerService implements IDataSourceManager {
     @Value("${resourceHandler.coordinatorEndpointAddress}")
     private String coordinatorEndpointAddress;
 
+    @Value("${resourceHandler.address}")
+    private String address;
+
     private final HashMap<String, IResourceManger> resourceMangers = new HashMap<>();
     private final RestTemplate coordinatorEndpoint;
 
@@ -43,14 +47,15 @@ public class ResourceManagerService implements IDataSourceManager {
     @Override
     public String initiateTransaction(String resourceManagerId, int participants) {
         log.info("Initializing transaction");
-        HttpEntity<TransactionParam> req = new HttpEntity<>(new TransactionParam(resourceManagerId, participants));
+        HttpEntity<TransactionParams> req = new HttpEntity<>(
+                new TransactionParams(new Participant(resourceManagerId, address, null), participants));
         return coordinatorEndpoint.postForEntity(coordinatorEndpointAddress + createTransactionSuffix, req, String.class).getBody();
     }
 
     @Override
     public void registerForTransaction(String resourceManagerId, String transactionId) {
         log.info("Registering for transaction {}", transactionId);
-        Participant rmModel = new Participant(resourceManagerId, transactionId);
+        Participant rmModel = new Participant(resourceManagerId,address, transactionId);
         HttpEntity<Participant> req = new HttpEntity<>(rmModel);
         coordinatorEndpoint.postForEntity(coordinatorEndpointAddress + createRegisterSuffix.apply(transactionId),
                 req, String.class);

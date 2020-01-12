@@ -21,7 +21,7 @@ public class ResourceManagerController {
         return "Running";
     }
 
-    @PostMapping("/manager/rm1")
+    @PostMapping("${resourceHandler.path}")
     public ResponseEntity<String> handleRequest(@RequestBody ParticipantRequestParams participantRequestParams) throws Exception {
         return coordinatorHandler.handleRequest(participantRequestParams.getId(), participantRequestParams.getManagerId(), participantRequestParams.getCommand());
     }

@@ -47,7 +47,7 @@ public class FileResourceManager implements IResourceManger {
     @Override
     public void checkDataSource() throws Exception {
         if (!checkFile(path.toFile())) {
-            throw new Exception();
+            throw new Exception("File " + path + " does not exist");
         }
     }
 

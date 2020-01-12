@@ -5,7 +5,7 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import java.util.function.Consumer;
 
-public class CoordinatorListenableFutureCallback implements ListenableFutureCallback {
+public class CoordinatorListenableFutureCallback implements ListenableFutureCallback<ResponseEntity<String>> {
 
     private Consumer<Throwable> ex;
     private Consumer<ResponseEntity<String>> success;
@@ -21,7 +21,7 @@ public class CoordinatorListenableFutureCallback implements ListenableFutureCall
     }
 
     @Override
-    public void onSuccess(Object o) {
-        success.accept((ResponseEntity<String>) o);
+    public void onSuccess(ResponseEntity<String> responseEntity) {
+        success.accept(responseEntity);
     }
 }

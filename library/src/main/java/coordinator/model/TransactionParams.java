@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransactionParams {
-    private String resourceManagerId;
+    private Participant master;
     private Integer participants;
 }

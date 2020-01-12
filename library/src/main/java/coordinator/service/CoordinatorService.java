@@ -29,10 +29,15 @@ public class CoordinatorService {
 
     public String createTransaction(TransactionParams params) {
         String transactionId = getNextId();
-        TransactionHandler handler = new TransactionHandler(transactionId, params.getParticipants(), participantService, new ConcurrentHashMap<>(), params.getResourceManagerId());
-        handler.registerParticipant(params.getResourceManagerId());
+        TransactionHandler handler = new TransactionHandler(
+                transactionId, params.getParticipants(), participantService,
+                new ConcurrentHashMap<>(), params.getMaster().getManagerId(),
+                params.getMaster().getAddress()
+        );
+        handler.registerParticipant(params.getMaster());
         handler.start();
-        log.info("Created handler [participants: {}] for {}", params.getParticipants(), transactionId);
+        log.info("Created handler [participants: {}] for transactionId : {}, Master {} with id {}",
+                params.getParticipants(), transactionId, params.getMaster().getAddress(), params.getMaster().getManagerId());
         handlers.put(transactionId, handler);
         return transactionId;
     }

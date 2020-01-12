@@ -20,7 +20,7 @@ public class SecondFileResource {
 
         try {
             FileResourceManager resourceManager = DataSourceFactory
-                    .fileResourceManager("C:\\Users\\micha\\IdeaProjects\\DistributedTransactions\\application\\src\\main\\resources\\testfile1.txt");
+                    .fileResourceManager("C:\\Users\\DELL\\Desktop\\GitHub\\distransactions\\application\\src\\main\\resources\\testfile1.txt");
 
             resourceManager.write("it's working!");
             resourceManager.registerForTransaction(transactionId);

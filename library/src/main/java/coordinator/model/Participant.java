@@ -9,5 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Participant {
     private String managerId;
+    private String address;
     private String transactionId;
 }

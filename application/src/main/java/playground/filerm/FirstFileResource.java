@@ -25,7 +25,7 @@ public class FirstFileResource {
 
         try {
             FileResourceManager resourceManager = DataSourceFactory
-                    .fileResourceManager("C:\\Users\\micha\\IdeaProjects\\DistributedTransactions\\application\\src\\main\\resources\\testfile.txt");
+                    .fileResourceManager("C:\\Users\\DELL\\Desktop\\GitHub\\distransactions\\application\\src\\main\\resources\\testfile.txt");
             resourceManager.write("it's working! :) file 1");
             String transactionId = resourceManager.initiateTransaction(2);
             secondFileResource.start(transactionId);
