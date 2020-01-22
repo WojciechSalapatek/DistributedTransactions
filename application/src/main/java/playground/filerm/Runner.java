@@ -46,10 +46,21 @@ public class Runner {
         }
     }
 
-    private void testDatabase() throws IOException {
-        SecondDatabaseApplication secondDatabaseApplication = new SecondDatabaseApplication();
-        FirstDatabaseApplication firstDatabaseApplication = new FirstDatabaseApplication(secondDatabaseApplication);
-        firstDatabaseApplication.run();
-    }
+    private void testDatabase() {
+        String query1[] = new String[25];
+        String query2[] = new String[25];
+        for (int i = 0; i < 25; i++) {
+            query1[i] = "insert into test_table values ('" + RandomStringUtils.randomAlphabetic(5) + "', " + i + ")";
+            query2[i] = "insert into test_table1 values (" + RandomStringUtils.randomNumeric(5) + ", " + i + ")";
+        }
 
+        log.info("--------------------------------STARTING!-------------------------------------");
+        for (int i = 0; i < 3; i++) {
+            SecondDatabaseApplication secondDatabaseApplication = new SecondDatabaseApplication(query1[i]);
+            FirstDatabaseApplication firstDatabaseApplication = new FirstDatabaseApplication(secondDatabaseApplication, query2[i]);
+            firstDatabaseApplication.run();
+        }
+
+
+    }
 }
