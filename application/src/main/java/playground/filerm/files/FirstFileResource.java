@@ -1,12 +1,10 @@
-package playground.filerm;
+package playground.filerm.files;
 
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import resource.model.datasource.DataSourceFactory;
 import resource.resourceManagers.FileResourceManager;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 
 @AllArgsConstructor(onConstructor = @__(@Autowired))

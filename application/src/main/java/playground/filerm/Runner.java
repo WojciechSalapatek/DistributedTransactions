@@ -3,9 +3,14 @@ package playground.filerm;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Component;
+import playground.filerm.database.FirstDatabaseApplication;
+import playground.filerm.database.SecondDatabaseApplication;
+import playground.filerm.files.FirstFileResource;
+import playground.filerm.files.SecondFileResource;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.io.IOException;
 
 @Slf4j
 @Component
@@ -15,6 +20,11 @@ public class Runner {
 
     @PostConstruct
     public void run() throws Exception{
+//        testFiles();
+        testDatabase();
+    }
+
+    private void testFiles() throws IOException {
         String files1[] = new String[1000];
         String files2[] = new String[1000];
         for (int i = 0; i < 250; i++) {
@@ -34,7 +44,12 @@ public class Runner {
             FirstFileResource firstFileResource = new FirstFileResource(files2[i], secondFileResource);
             firstFileResource.run();
         }
+    }
 
+    private void testDatabase() throws IOException {
+        SecondDatabaseApplication secondDatabaseApplication = new SecondDatabaseApplication();
+        FirstDatabaseApplication firstDatabaseApplication = new FirstDatabaseApplication(secondDatabaseApplication);
+        firstDatabaseApplication.run();
     }
 
 }

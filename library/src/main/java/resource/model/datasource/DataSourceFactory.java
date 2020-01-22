@@ -10,6 +10,7 @@ import resource.resourceManagers.JDBCResourceManager;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
 
 @Service
 public class DataSourceFactory implements ApplicationContextAware {
@@ -17,11 +18,11 @@ public class DataSourceFactory implements ApplicationContextAware {
     private static ApplicationContext ac;
     private static long id = -1;
 
-    public static FileResourceManager fileResourceManager(String path) throws IOException {
+    public static FileResourceManager fileResourceManager(String path) {
         return new FileResourceManager(nextId(), path, ac.getBean(ResourceManagerService.class));
     }
 
-    public static JDBCResourceManager jdbcResourceManager(Connection connection) throws IOException {
+    public static JDBCResourceManager jdbcResourceManager(Connection connection) {
         return new JDBCResourceManager(nextId(), connection, ac.getBean(ResourceManagerService.class));
     }
 

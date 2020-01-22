@@ -1,4 +1,4 @@
-package playground.filerm;
+package playground.filerm.files;
 
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -23,6 +23,16 @@ public class JDBCResourceManager implements IResourceManger {
         this.id = id;
         this.conn = conn;
         this.resourceManagerService = resourceManagerService;
+        unableAutoCommit(conn);
+        resourceManagerService.addResourceManager(this);
+    }
+
+    private void unableAutoCommit(Connection conn) {
+        try {
+            conn.setAutoCommit(false);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public void executeQuery(String query) {
@@ -42,7 +52,7 @@ public class JDBCResourceManager implements IResourceManger {
     @Override
     public void checkDataSource() throws Exception {
         ResultSet rs = conn.createStatement().executeQuery("select 1");
-        if (Objects.nonNull(rs.getObject(0))) {
+        if (!rs.next()) {
             throw new Exception();
         }
     }
@@ -64,11 +74,11 @@ public class JDBCResourceManager implements IResourceManger {
     }
 
     //TODO consider this
-    private ResultSet helpExecuteQuery(String query) {
+    private void helpExecuteQuery(String query) {
         try {
-            return conn.createStatement().executeQuery(query);
+            conn.createStatement().executeUpdate(query);
         } catch (SQLException e) {
-            throw new RuntimeException("");
+            throw new RuntimeException(e);
         }
     }
 
