@@ -1,9 +1,8 @@
 package resource.resourceManagers;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import resource.model.datasource.ResourceManagerService;
 
 import java.io.File;
@@ -14,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.Queue;
 
+@Slf4j
 public class FileResourceManager implements IResourceManger {
 
     @Getter
@@ -27,8 +27,8 @@ public class FileResourceManager implements IResourceManger {
         this.id = id;
         this.path = Paths.get(path);
         this.resourceManagerService = resourceManagerService;
-        resourceManagerService.addResourceManager(this);
         createTmpPath(this.path.getParent());
+        resourceManagerService.addResourceManager(this);
     }
 
     public void write(String abc) throws IOException {
@@ -53,7 +53,7 @@ public class FileResourceManager implements IResourceManger {
     }
 
     @Override
-    public void commit() throws Exception {
+    public void execute() throws Exception {
         Files.copy(path, tmpPath);
         Files.writeString(tmpPath, String.join("\n", queue));
         queue.clear();
@@ -65,13 +65,13 @@ public class FileResourceManager implements IResourceManger {
     }
 
     @Override
-    public void execute() throws Exception {
+    public void commit() throws Exception {
         Files.delete(path);
         Files.move(tmpPath, path);
     }
 
     private void createTmpPath(Path path) {
-        tmpPath = Paths.get(path.toString() + "/" + RandomStringUtils.randomAlphanumeric(16));
+        tmpPath = Paths.get(path.toString() + "/CPY_" + RandomStringUtils.randomAlphanumeric(42));
     }
 
     private boolean checkFile(File file) {

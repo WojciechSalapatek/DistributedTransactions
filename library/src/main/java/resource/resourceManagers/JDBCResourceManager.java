@@ -49,7 +49,7 @@ public class JDBCResourceManager implements IResourceManger {
 
     //TODO: read ?
     @Override
-    public void commit() throws Exception {
+    public void execute() throws Exception {
         queue.forEach(this::helpExecuteQuery);
     }
 
@@ -59,7 +59,7 @@ public class JDBCResourceManager implements IResourceManger {
     }
 
     @Override
-    public void execute() throws Exception {
+    public void commit() throws Exception {
         conn.commit();
     }
 

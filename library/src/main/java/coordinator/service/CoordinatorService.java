@@ -25,7 +25,7 @@ public class CoordinatorService {
     private ParticipantRestService participantService;
     @Getter
     Map<String, TransactionHandler> handlers = new HashMap<>();
-    private final ExecutorService executor = Executors.newFixedThreadPool(20);
+    private final ExecutorService executor = Executors.newFixedThreadPool(8);
 
     public synchronized static String getNextId() {
         return Long.toString(id++);

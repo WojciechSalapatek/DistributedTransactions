@@ -1,7 +1,7 @@
 package coordinator.service;
 
+import coordinator.command.*;
 import coordinator.model.Participant;
-import coordinator.model.ParticipantCommand;
 import coordinator.model.ParticipantStatus;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
@@ -17,7 +17,6 @@ import java.util.concurrent.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static coordinator.model.ParticipantCommand.*;
 import static coordinator.model.ParticipantStatus.*;
 
 @Slf4j
@@ -64,7 +63,13 @@ public class TransactionHandler extends Thread {
     private boolean waitForAllParticipantsToRegister() {
         if (!sleep(() -> participants.size() < expected_participants)) {
             log.error("[transaction {}] Waiting for all participants to register for tansaction failed", id);
-            participantService.sendCommand(initializerId, id, initializerAddress, "Waiting for all participants to register failed", ERROR_INITIALIZING,
+            Command errorCommand = ErrorInitializingCommand
+                    .builder()
+                    .transactionId(id)
+                    .managerId(initializerId)
+                    .message("Waiting for all participants to register failed")
+                    .build();
+            participantService.sendCommand(initializerAddress, errorCommand,
                     s -> {},
                     th -> {});
             return false;
@@ -75,7 +80,11 @@ public class TransactionHandler extends Thread {
 
     private boolean sendStartCommands() {
         log.info("[transaction {}] Preparing", id);
-        List<ResponseEntity<String>> startedParticipants = sendHelper("START command", START,
+        Command startCommand = StartCommand
+                .builder()
+                .transactionId(id)
+                .build();
+        List<ResponseEntity<String>> startedParticipants = sendHelper(startCommand,
                 "[transaction {}] Start command for {} failed due to {}", STARTED);
 
         if (startedParticipants.contains(ERROR_STATUS) || !participantsOk()) {
@@ -89,7 +98,11 @@ public class TransactionHandler extends Thread {
 
     private boolean sendCommitCommands(){
         log.info("[transaction {}] Committing", id);
-        List<ResponseEntity<String>> commitedParticipants = sendHelper("COMMIT command", ParticipantCommand.COMMIT,
+        Command commitCommand = CommitCommand
+                .builder()
+                .transactionId(id)
+                .build();
+        List<ResponseEntity<String>> commitedParticipants = sendHelper(commitCommand,
                 "[transaction {}] Commit for {} failed due to {}", COMMITED);
 
         if (commitedParticipants.contains(ERROR_STATUS) || !participantsOk()) {
@@ -103,17 +116,21 @@ public class TransactionHandler extends Thread {
 
     private boolean rollbackAll() {
         log.warn("[transaction {}] Rollbacking", id);
-        List<ResponseEntity<String>> rollbackedParticipants = sendHelper("Rollback command", ParticipantCommand.ROLLBACK,
+        Command rollbackCommand = RollbackCommand
+                .builder()
+                .transactionId(id)
+                .build();
+        List<ResponseEntity<String>> rollbackedParticipants = sendHelper(rollbackCommand,
                 "[transaction {}] Rollback for {} failed due to {}", ROLLBACKED);
         return !rollbackedParticipants.contains(ERROR_STATUS);
     }
 
-    private List<ResponseEntity<String>> sendHelper(String message, ParticipantCommand command,
-                                                    String errorMessage, ParticipantStatus status) {
+    private List<ResponseEntity<String>> sendHelper(Command command, String errorMessage,
+                                                    ParticipantStatus status) {
         return participants
                 .keySet()
                 .parallelStream()
-                .map(p -> participantService.sendCommand(p.getManagerId(), id, p.getAddress(), message, command,
+                .map(p -> participantService.sendCommand(p.getAddress(), command.changeManagerId(p.getManagerId()),
                         s -> receiveOkStatusForParticipant(p, status),
                         throwable -> {
                             log.error(errorMessage, id, p.getAddress(), throwable.getMessage());
@@ -127,7 +144,12 @@ public class TransactionHandler extends Thread {
 
     private void sendSuccess(){
         log.info("[transaction {}] Transaction ended successfully", id);
-        participantService.sendCommand(initializerId, id, initializerAddress, "SUCCESS command", SUCCESS,
+        Command successCommand = SuccessCommand
+                .builder()
+                .transactionId(id)
+                .managerId(initializerId)
+                .build();
+        participantService.sendCommand(initializerAddress, successCommand,
                 s -> {},
                 th -> {});
     }
@@ -160,7 +182,13 @@ public class TransactionHandler extends Thread {
         );
         if (rollbackAll()) {
             log.info("[transaction {}] Intermediate changes was successfully rollbacked", id);
-            participantService.sendCommand(initializerId, id, initializerAddress, "Intermediate changes was successfully rollbacked", ERROR_ROLLBACKED,
+            Command errorCommand = ErrorRollbackedCommand
+                    .builder()
+                    .transactionId(id)
+                    .managerId(initializerId)
+                    .message("Intermediate changes was successfully rollbacked")
+                    .build();
+            participantService.sendCommand(initializerAddress, errorCommand,
                     s -> {},
                     th -> {});
         } else {
@@ -169,7 +197,13 @@ public class TransactionHandler extends Thread {
                     (k, v) -> message.append(String.format("%s : %s, ", k.getAddress(), v.getStatus()))
             );
             log.error("[transaction {}] Error during rollbacking, state: {}", id ,message.toString());
-            participantService.sendCommand(initializerId, id, initializerAddress, message.toString(), ERROR_INCONSISTENT_STATE,
+            Command errorCommand = ErrorInconsistentStateCommand
+                    .builder()
+                    .transactionId(id)
+                    .managerId(initializerId)
+                    .message(message.toString())
+                    .build();
+            participantService.sendCommand(initializerAddress, errorCommand,
                     s -> {},
                     th -> {});
         }
