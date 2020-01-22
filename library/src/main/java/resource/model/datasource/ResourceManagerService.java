@@ -67,7 +67,7 @@ public class ResourceManagerService implements IDataSourceManager {
 
     @Override
     public ResponseEntity<String> beginTransaction(ParticipantParams participantParams) throws Exception {
-        log.info("Beggiinning for {}", participantParams.getParticipantId());
+        log.debug("Beggiinning for {}", participantParams.getParticipantId());
         IResourceManger resourceManager = resourceMangers.get(participantParams.getParticipantId());
         resourceManager.checkDataSource();
         resourceManager.execute();

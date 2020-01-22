@@ -17,7 +17,7 @@ public class Runner {
     public void run() throws Exception{
         String files1[] = new String[1000];
         String files2[] = new String[1000];
-        for (int i = 0; i < 25; i++) {
+        for (int i = 0; i < 250; i++) {
             String f1 = ROOT + RandomStringUtils.randomAlphanumeric(42);
             String f2 = ROOT + RandomStringUtils.randomAlphanumeric(42);
             File file1 = new File(f1);
@@ -29,7 +29,7 @@ public class Runner {
 
         }
         log.info("--------------------------------STARTING!-------------------------------------");
-        for (int i = 0; i < 25; i++) {
+        for (int i = 0; i < 250; i++) {
             SecondFileResource secondFileResource= new SecondFileResource(files1[i]);
             FirstFileResource firstFileResource = new FirstFileResource(files2[i], secondFileResource);
             firstFileResource.run();

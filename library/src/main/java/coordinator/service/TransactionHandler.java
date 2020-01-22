@@ -40,7 +40,7 @@ public class TransactionHandler extends Thread {
     @Value("${coordinator.config.sleeptime}")
     private int sleepTime = 2000;
     @Value("${coordinator.config.timeout}")
-    private int timeout = 1000;
+    private int timeout = 5000;
     private int slept = 0;
 
     public static final ResponseEntity<String> ERROR_STATUS =  ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).build();
@@ -82,6 +82,7 @@ public class TransactionHandler extends Thread {
         log.info("[transaction {}] Preparing", id);
         Command startCommand = StartCommand
                 .builder()
+                .message("Start command")
                 .transactionId(id)
                 .build();
         List<ResponseEntity<String>> startedParticipants = sendHelper(startCommand,
@@ -100,6 +101,7 @@ public class TransactionHandler extends Thread {
         log.info("[transaction {}] Committing", id);
         Command commitCommand = CommitCommand
                 .builder()
+                .message("Commit command")
                 .transactionId(id)
                 .build();
         List<ResponseEntity<String>> commitedParticipants = sendHelper(commitCommand,
@@ -118,6 +120,7 @@ public class TransactionHandler extends Thread {
         log.warn("[transaction {}] Rollbacking", id);
         Command rollbackCommand = RollbackCommand
                 .builder()
+                .message("Rollback Command")
                 .transactionId(id)
                 .build();
         List<ResponseEntity<String>> rollbackedParticipants = sendHelper(rollbackCommand,
@@ -129,7 +132,7 @@ public class TransactionHandler extends Thread {
                                                     ParticipantStatus status) {
         return participants
                 .keySet()
-                .parallelStream()
+                .stream()
                 .map(p -> participantService.sendCommand(p.getAddress(), command.changeManagerId(p.getManagerId()),
                         s -> receiveOkStatusForParticipant(p, status),
                         throwable -> {
@@ -147,6 +150,7 @@ public class TransactionHandler extends Thread {
         Command successCommand = SuccessCommand
                 .builder()
                 .transactionId(id)
+                .message("Success Command")
                 .managerId(initializerId)
                 .build();
         participantService.sendCommand(initializerAddress, successCommand,

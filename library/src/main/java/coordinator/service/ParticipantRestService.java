@@ -10,18 +10,14 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 @Slf4j
 @Service
 public class ParticipantRestService {
-    private List<String> sendCommits = new ArrayList<>();
-
     private AsyncRestTemplate restTemplate = new AsyncRestTemplate();
 
-    public ListenableFuture<ResponseEntity<String>> sendCommand(String address, Command command,
+    public synchronized ListenableFuture<ResponseEntity<String>> sendCommand(String address, Command command,
                                                                 Consumer<ResponseEntity<String>> successCallback,
                                                                 Consumer<Throwable> errorCallback) {
         CoordinatorListenableFutureCallback callback = new CoordinatorListenableFutureCallback(errorCallback, successCallback);
