@@ -45,12 +45,20 @@ public class CommandBuilder {
                 .build();
     }
 
-    public static Command getErrorRollbackedCommand(String transactionId, String managerId, String message) {
+    public static Command getErrorInconsistentStateCommand(String transactionId, String managerId, String message) {
         return ErrorInconsistentStateCommand
                 .builder()
                 .transactionId(transactionId)
                 .managerId(managerId)
                 .message(message)
+                .build();
+    }
+
+    public static Command getStartCommand(String transactionId) {
+        return StartCommand
+                .builder()
+                .message("Start command")
+                .transactionId(transactionId)
                 .build();
     }
 

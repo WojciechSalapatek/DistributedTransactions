@@ -24,7 +24,7 @@ public class ResourceManagerController {
     }
 
     @PostMapping("${resourceHandler.path}")
-    public ResponseEntity<String> handleRequest(@RequestBody Command command){
+    public ResponseEntity<String> handleRequest(@RequestBody Command command) {
         return commandHandler.handleRequest(command);
     }
 

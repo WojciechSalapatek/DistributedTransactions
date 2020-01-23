@@ -8,6 +8,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -25,7 +26,7 @@ import static coordinator.model.ParticipantStatus.*;
 public class TransactionHandler extends Thread {
 
     final private String id;
-    final private int expected_participants;
+    final private int expectedParticipants;
     final private ParticipantRestService participantService;
     final private ConcurrentMap<Participant, ParticipantStatus> participants;
     final private String initializerId;
@@ -55,7 +56,7 @@ public class TransactionHandler extends Thread {
     }
 
     private boolean waitForAllParticipantsToRegister() {
-        if (!sleep(() -> participants.size() < expected_participants)) {
+        if (!sleep(() -> participants.size() < expectedParticipants)) {
             log.error("[transaction {}] Waiting for all participants to register for tansaction failed", id);
             Command errorCommand = CommandBuilder.getErrorInitializingCommand(id, initializerId);
             participantService.sendCommand(initializerAddress, errorCommand,
@@ -69,12 +70,7 @@ public class TransactionHandler extends Thread {
 
     private boolean sendStartCommands() {
         log.info("[transaction {}] Preparing", id);
-        Command startCommand = StartCommand
-                .builder()
-                .message("Start command")
-                .transactionId(id)
-                .build();
-        List<ResponseEntity<String>> startedParticipants = sendHelper(startCommand,
+        List<ResponseEntity<String>> startedParticipants = sendHelper(CommandBuilder.getStartCommand(id),
                 "[transaction {}] Start command for {} failed due to {}", STARTED);
 
         if (startedParticipants.contains(ERROR_STATUS) || !participantsOk()) {
@@ -86,7 +82,7 @@ public class TransactionHandler extends Thread {
         }
     }
 
-    private boolean sendCommitCommands(){
+    private boolean sendCommitCommands() {
         log.info("[transaction {}] Committing", id);
         List<ResponseEntity<String>> commitedParticipants = sendHelper(CommandBuilder.getCommitCommand(id, initializerId),
                 "[transaction {}] Commit for {} failed due to {}", COMMITED);
@@ -166,7 +162,7 @@ public class TransactionHandler extends Thread {
             StringBuilder message = new StringBuilder();
             participants.forEach((k, v) -> message.append(String.format("%s : %s, ", k.getAddress(), v.getStatus())));
             log.error("[transaction {}] Error during rollbacking, state: {}", id ,message.toString());
-            Command errorCommand = CommandBuilder.getErrorRollbackedCommand(id, initializerId, message.toString());
+            Command errorCommand = CommandBuilder.getErrorInconsistentStateCommand(id, initializerId, message.toString());
             participantService.sendCommand(initializerAddress, errorCommand,
                     s -> {},
                     th -> {});

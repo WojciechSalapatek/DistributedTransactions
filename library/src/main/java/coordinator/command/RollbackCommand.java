@@ -20,7 +20,7 @@ public class RollbackCommand extends Command {
     }
 
     @Override
-    protected ResponseEntity<String> execute(ResourceManagerService resourceManagerService) throws Exception{
+    protected ResponseEntity<String> execute(ResourceManagerService resourceManagerService) throws Exception {
         return resourceManagerService.rollback(new ParticipantParams(managerId, transactionId));
     }
 

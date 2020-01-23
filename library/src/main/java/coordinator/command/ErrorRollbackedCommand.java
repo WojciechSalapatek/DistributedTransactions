@@ -21,6 +21,7 @@ public class ErrorRollbackedCommand extends Command{
 
     @Override
     protected ResponseEntity<String> execute(ResourceManagerService resourceManagerService){
+        resourceManagerService.transactionRollbacked(transactionId);
         return ResponseEntity.ok().build();
     }
 

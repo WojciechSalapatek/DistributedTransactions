@@ -58,30 +58,46 @@ public class ResourceManagerService implements IDataSourceManager {
                 req, String.class);
     }
 
-    public IResourceManger getResourceManager(String resourceManagerId){
+    public IResourceManger getResourceManager(String resourceManagerId) {
         return resourceMangers.get(resourceManagerId);
     }
 
     @Override
     public ResponseEntity<String> beginTransaction(ParticipantParams participantParams) throws Exception {
-        log.debug("Beggiinning for {}", participantParams.getParticipantId());
+        log.debug("Beginning for {}", participantParams.getParticipantId());
         IResourceManger resourceManager = resourceMangers.get(participantParams.getParticipantId());
         resourceManager.checkDataSource();
         resourceManager.execute();
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(participantParams.getParticipantId());
     }
 
     @Override
     public ResponseEntity<String> commit(ParticipantParams participantParams) throws Exception {
         IResourceManger resourceManager = resourceMangers.get(participantParams.getParticipantId());
         resourceManager.commit();
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(participantParams.getParticipantId());
     }
+
     @Override
     public ResponseEntity<String> rollback(ParticipantParams participantParams) throws Exception {
         IResourceManger resourceManager = resourceMangers.get(participantParams.getParticipantId());
         resourceManager.rollback();
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(participantParams.getParticipantId());
+    }
+
+    @Override
+    public void unexpectedTransactionError(String transactionId) {
+        throw new RuntimeException("Unexpected Transaction Error, transactionId =" + transactionId);
+    }
+
+    @Override
+    public void transactionRollbacked(String transactionId) {
+        throw new RuntimeException("Transaction successfully rollbacked , transactionId =" + transactionId);
+    }
+
+    @Override
+    public void unableToFindParticipants(String transactionId) {
+        throw new RuntimeException("Unable to find Participants , transactionId =" + transactionId);
     }
 
 }

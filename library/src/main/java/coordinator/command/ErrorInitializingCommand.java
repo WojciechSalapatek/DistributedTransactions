@@ -18,9 +18,9 @@ public class ErrorInitializingCommand extends Command{
         this.message = message;
     }
 
-
     @Override
-    protected ResponseEntity<String> execute(ResourceManagerService resourceManagerService){
+    protected ResponseEntity<String> execute(ResourceManagerService resourceManagerService) {
+        resourceManagerService.unableToFindParticipants(transactionId);
         return ResponseEntity.ok().build();
     }
 

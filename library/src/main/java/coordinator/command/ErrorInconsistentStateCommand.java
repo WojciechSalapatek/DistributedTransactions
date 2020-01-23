@@ -20,6 +20,7 @@ public class ErrorInconsistentStateCommand extends Command{
 
     @Override
     protected ResponseEntity<String> execute(ResourceManagerService resourceManagerService) {
+        resourceManagerService.unexpectedTransactionError(transactionId);
         return ResponseEntity.ok().build();
     }
 
