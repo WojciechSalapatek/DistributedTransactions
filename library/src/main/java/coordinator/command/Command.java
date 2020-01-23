@@ -34,7 +34,7 @@ public abstract class Command implements Serializable {
     protected String id;
     protected String managerId;
 
-    public ResponseEntity<String> safeExecute(ResourceManagerService resourceManagerService){
+    public ResponseEntity<String> safeExecute(ResourceManagerService resourceManagerService) {
         try {
             return execute(resourceManagerService);
         } catch (Exception e) {

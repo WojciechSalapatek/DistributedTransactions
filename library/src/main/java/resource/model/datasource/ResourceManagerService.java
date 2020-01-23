@@ -2,7 +2,6 @@ package resource.model.datasource;
 
 import coordinator.model.Participant;
 import coordinator.model.TransactionParams;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,13 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import resource.model.IDataSourceManager;
 import resource.resourceManagers.IResourceManger;
 import resource.transactions.ParticipantParams;
-import resource.transactions.TransactionParam;
 
 import java.util.HashMap;
 import java.util.function.Function;

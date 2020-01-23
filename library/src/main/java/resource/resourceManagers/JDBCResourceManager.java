@@ -1,13 +1,10 @@
 package resource.resourceManagers;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
 import resource.model.datasource.ResourceManagerService;
 
 import java.sql.*;
 import java.util.LinkedList;
-import java.util.Objects;
 import java.util.Queue;
 
 
@@ -57,7 +54,6 @@ public class JDBCResourceManager implements IResourceManger {
         }
     }
 
-    //TODO: read ?
     @Override
     public void execute() throws Exception {
         queue.forEach(this::helpExecuteQuery);

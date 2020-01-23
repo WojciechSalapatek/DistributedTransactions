@@ -20,7 +20,7 @@ public class StartCommand extends Command {
     }
 
     @Override
-    protected ResponseEntity<String> execute(ResourceManagerService resourceManagerService) throws Exception{
+    protected ResponseEntity<String> execute(ResourceManagerService resourceManagerService) throws Exception {
         return resourceManagerService.beginTransaction(new ParticipantParams(managerId, transactionId));
     }
 }
