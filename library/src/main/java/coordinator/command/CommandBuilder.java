@@ -32,7 +32,7 @@ public class CommandBuilder {
         return CommitCommand
                 .builder()
                 .message("Commit command")
-                .transactionId(managerId)
+                .transactionId(transactionId)
                 .build();
     }
 

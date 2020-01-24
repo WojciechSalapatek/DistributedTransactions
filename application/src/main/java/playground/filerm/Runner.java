@@ -19,11 +19,13 @@ import java.io.IOException;
 public class Runner {
 
     public static final String ROOT = "C:\\Users\\DELL\\Desktop\\GitHub\\distransactions\\application\\src\\main\\resources\\testfiles\\";
+    public static final String ROOT1 = "C:\\Users\\micha\\IdeaProjects\\DistributedTransactionsv2\\application\\src\\main\\resources\\";
+
 
     @PostConstruct
-    public void run() throws Exception{
+    public void run() throws Exception {
 //        testFiles();
-        testDatabase();
+        testCheckFiles();
     }
 
     private void testFiles() throws IOException {
@@ -63,4 +65,37 @@ public class Runner {
             firstDatabaseApplication.run();
         }
     }
+
+    private void testCheckFiles() throws IOException, InterruptedException {
+        String f1 = ROOT1 + RandomStringUtils.randomAlphanumeric(42);
+        String f2 = ROOT1 + RandomStringUtils.randomAlphanumeric(42);
+        File file1 = new File(f1);
+        File file2 = new File(f2);
+        file1.createNewFile();
+        file2.createNewFile();
+
+        FileResourceManager resourceManager1 = DataSourceFactory.fileResourceManager(file1.getPath());
+        resourceManager1.write("it's working! :) file 1");
+        FileResourceManager resourceManager2 = DataSourceFactory
+                .fileResourceManager(file2.getPath());
+
+        resourceManager2.write("it's working!");
+
+        String transactionId = resourceManager1.initiateTransaction(2);
+        log.info("transactoion status {} ", resourceManager1.checkTransactionStatus(transactionId));
+        resourceManager2.registerForTransaction(transactionId);
+        log.info("transactoion status {} ", resourceManager1.checkTransactionStatus(transactionId));
+
+        Runnable runnable = () -> {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            log.info("transactoion status {} ", resourceManager1.checkTransactionStatus(transactionId)); };
+        Thread thread = new Thread(runnable);
+        thread.start();
+
+    }
+
 }

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum TransactionStatus {
 
+    REGISTERED("registered"),
     NO_INFO("no info"),
     PARTICIPANTS_NOT_FOUND("participants not found"),
     COMMITED("commited"),
