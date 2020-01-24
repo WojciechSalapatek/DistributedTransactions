@@ -1,7 +1,11 @@
 package playground.filerm;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.core.ApplicationContext;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import playground.filerm.database.FirstDatabaseApplication;
 import playground.filerm.database.SecondDatabaseApplication;
@@ -21,14 +25,21 @@ public class Runner {
     public static final String ROOT = "C:\\Users\\DELL\\Desktop\\GitHub\\distransactions\\application\\src\\main\\resources\\testfiles\\";
     public static final String ROOT1 = "C:\\Users\\micha\\IdeaProjects\\DistributedTransactionsv2\\application\\src\\main\\resources\\";
 
+    @Value("${mode}")
+    private String mode;
 
     @PostConstruct
     public void run() throws Exception {
-//        testFiles();
-        testCheckFiles();
+        if (mode.equals("files")) {
+            testFiles();
+        } else if (mode.equals("database")) {
+            testDatabase();
+        } else {
+            testCheckFiles();
+        }
     }
 
-    private void testFiles() throws IOException {
+    public void testFiles() throws IOException {
         String files1[] = new String[1000];
         String files2[] = new String[1000];
         for (int i = 0; i < 250; i++) {
@@ -50,7 +61,7 @@ public class Runner {
         }
     }
 
-    private void testDatabase() {
+    public void testDatabase() {
         String query1[] = new String[25];
         String query2[] = new String[25];
         for (int i = 0; i < 25; i++) {
@@ -66,7 +77,7 @@ public class Runner {
         }
     }
 
-    private void testCheckFiles() throws IOException, InterruptedException {
+    public void testCheckFiles() throws IOException, InterruptedException {
         String f1 = ROOT1 + RandomStringUtils.randomAlphanumeric(42);
         String f2 = ROOT1 + RandomStringUtils.randomAlphanumeric(42);
         File file1 = new File(f1);
