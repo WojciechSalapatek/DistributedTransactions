@@ -54,6 +54,7 @@ public class ResourceManagerService implements IDataSourceManager {
     @Override
     public void registerForTransaction(String resourceManagerId, String transactionId) {
         log.info("Registering for transaction {}", transactionId);
+        transactionStatus.put(transactionId, TransactionStatus.REGISTERED);
         Participant rmModel = new Participant(resourceManagerId,address, transactionId);
         HttpEntity<Participant> req = new HttpEntity<>(rmModel);
         coordinatorEndpoint.postForEntity(coordinatorEndpointAddress + createRegisterSuffix.apply(transactionId),
@@ -76,6 +77,7 @@ public class ResourceManagerService implements IDataSourceManager {
     @Override
     public ResponseEntity<String> commit(ParticipantParams participantParams) throws Exception {
         log.info("Commiting transaction {} for {}", participantParams.getTransactionId(), participantParams.getParticipantId());
+        transactionStatus.put(participantParams.getTransactionId(), TransactionStatus.COMMITED);
         IResourceManger resourceManager = resourceMangers.get(participantParams.getParticipantId());
         resourceManager.commit();
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(participantParams.getParticipantId());
