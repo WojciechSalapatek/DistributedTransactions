@@ -1,5 +1,6 @@
 package playground.filerm;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.core.ApplicationContext;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -9,6 +10,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import playground.filerm.database.FirstDatabaseApplication;
 import playground.filerm.database.SecondDatabaseApplication;
+import playground.filerm.files.FileAndDatabaseResource;
 import playground.filerm.files.FirstFileResource;
 import playground.filerm.files.SecondFileResource;
 import resource.model.datasource.DataSourceFactory;
@@ -34,7 +36,10 @@ public class Runner {
             testFiles();
         } else if (mode.equals("database")) {
             testDatabase();
-        } else {
+        } else if (mode.equals("both")) {
+            testBoth();
+        }
+        else {
             testCheckFiles();
         }
     }
@@ -107,6 +112,16 @@ public class Runner {
         Thread thread = new Thread(runnable);
         thread.start();
 
+    }
+
+    @SneakyThrows
+    public void testBoth(){
+        String f1 = ROOT + RandomStringUtils.randomAlphanumeric(42);
+        File file1 = new File(f1);
+        file1.createNewFile();
+        SecondDatabaseApplication secondDatabaseApplication = new SecondDatabaseApplication("insert into test_table values ('" + RandomStringUtils.randomAlphabetic(5) + "', " + 99 + ")");
+        FileAndDatabaseResource resource = new FileAndDatabaseResource(f1, secondDatabaseApplication);
+        resource.run();
     }
 
 }
