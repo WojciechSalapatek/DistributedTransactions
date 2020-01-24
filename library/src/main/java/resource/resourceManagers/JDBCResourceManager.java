@@ -1,6 +1,7 @@
 package resource.resourceManagers;
 
 import lombok.Getter;
+import org.springframework.context.ApplicationContext;
 import resource.model.datasource.ResourceManagerService;
 import resource.transactions.TransactionStatus;
 
@@ -8,7 +9,7 @@ import java.sql.*;
 import java.util.LinkedList;
 import java.util.Queue;
 
-
+@Getter
 public class JDBCResourceManager implements IResourceManger {
 
     @Getter
@@ -16,11 +17,15 @@ public class JDBCResourceManager implements IResourceManger {
     private Connection conn;
     private ResourceManagerService resourceManagerService;
     private Queue<String> queue = new LinkedList<>();
+    private ApplicationContext applicationContext;
 
-    public JDBCResourceManager(String id, Connection conn, ResourceManagerService resourceManagerService) {
+    public JDBCResourceManager(String id, Connection conn,
+                               ResourceManagerService resourceManagerService,
+                               ApplicationContext context) {
         this.id = id;
         this.conn = conn;
         this.resourceManagerService = resourceManagerService;
+        this.applicationContext = context;
         unableAutoCommit(conn);
         resourceManagerService.addResourceManager(this);
     }

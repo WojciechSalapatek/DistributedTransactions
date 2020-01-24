@@ -19,11 +19,11 @@ public class DataSourceFactory implements ApplicationContextAware {
     private static long id = -1;
 
     public static FileResourceManager fileResourceManager(String path) {
-        return new FileResourceManager(nextId(), path, ac.getBean(ResourceManagerService.class));
+        return new FileResourceManager(nextId(), path, ac.getBean(ResourceManagerService.class), ac);
     }
 
     public static JDBCResourceManager jdbcResourceManager(Connection connection) {
-        return new JDBCResourceManager(nextId(), connection, ac.getBean(ResourceManagerService.class));
+        return new JDBCResourceManager(nextId(), connection, ac.getBean(ResourceManagerService.class), ac);
     }
 
     private static String nextId(){

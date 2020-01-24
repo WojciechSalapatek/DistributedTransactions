@@ -1,6 +1,8 @@
 package playground.filerm.database;
 
 import lombok.AllArgsConstructor;
+import playground.filerm.files.ErrorRollbackedCallback;
+import playground.filerm.files.InitCallback;
 import resource.model.datasource.DataSourceFactory;
 import resource.resourceManagers.JDBCResourceManager;
 
@@ -21,6 +23,8 @@ public class SecondDatabaseApplication {
         try {
             conn = DriverManager.getConnection(url, user, password);
             JDBCResourceManager jdbcResourceManager = DataSourceFactory.jdbcResourceManager(conn);
+            jdbcResourceManager.registerInitializationErrorCallback(new InitCallback());
+            jdbcResourceManager.registerRollbackedErrorCallback(new ErrorRollbackedCallback());
             jdbcResourceManager.executeQuery(query);
             jdbcResourceManager.registerForTransaction(transactionId);
 

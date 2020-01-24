@@ -3,6 +3,7 @@ package resource.resourceManagers;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.context.ApplicationContext;
 import resource.model.datasource.ResourceManagerService;
 import resource.transactions.TransactionStatus;
 
@@ -14,6 +15,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 @Slf4j
+@Getter
 public class FileResourceManager implements IResourceManger {
 
     @Getter
@@ -22,11 +24,14 @@ public class FileResourceManager implements IResourceManger {
     private LinkedList<String> queue;
     private final Path path;
     private Path tmpPath;
+    private ApplicationContext applicationContext;
 
-    public FileResourceManager(String id, String path, ResourceManagerService resourceManagerService){
+    public FileResourceManager(String id, String path, ResourceManagerService resourceManagerService,
+                               ApplicationContext context){
         this.id = id;
         this.path = Paths.get(path);
         this.resourceManagerService = resourceManagerService;
+        this.applicationContext = context;
         queue = new LinkedList<>();
         createTmpPath(this.path.getParent());
         resourceManagerService.addResourceManager(this);

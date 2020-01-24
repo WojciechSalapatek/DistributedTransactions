@@ -1,6 +1,8 @@
 package playground.filerm.database;
 
 import lombok.AllArgsConstructor;
+import playground.filerm.files.ErrorRollbackedCallback;
+import playground.filerm.files.InitCallback;
 import resource.model.datasource.DataSourceFactory;
 import resource.resourceManagers.JDBCResourceManager;
 import resource.transactions.TransactionStatus;
@@ -23,6 +25,8 @@ public class FirstDatabaseApplication {
             Class.forName("org.postgresql.Driver");
             conn = DriverManager.getConnection(url, user, password);
             JDBCResourceManager jdbcResourceManager = DataSourceFactory.jdbcResourceManager(conn);
+            jdbcResourceManager.registerInitializationErrorCallback(new InitCallback());
+            jdbcResourceManager.registerRollbackedErrorCallback(new ErrorRollbackedCallback());
             jdbcResourceManager.executeQuery(query);
             String transactionId = jdbcResourceManager.initiateTransaction(2);
             try {

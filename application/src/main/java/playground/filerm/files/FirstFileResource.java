@@ -17,6 +17,8 @@ public class FirstFileResource implements Runnable {
     public void run() {
         try {
             FileResourceManager resourceManager = DataSourceFactory.fileResourceManager(path);
+            resourceManager.registerInitializationErrorCallback(new InitCallback());
+            resourceManager.registerRollbackedErrorCallback(new ErrorRollbackedCallback());
             resourceManager.write("it's working! :) file 1");
             String transactionId = resourceManager.initiateTransaction(2);
             secondFileResource.start(transactionId);

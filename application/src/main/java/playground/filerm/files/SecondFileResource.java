@@ -19,7 +19,8 @@ public class SecondFileResource {
         try {
             FileResourceManager resourceManager = DataSourceFactory
                     .fileResourceManager(path);
-
+            resourceManager.registerInitializationErrorCallback(new InitCallback());
+            resourceManager.registerRollbackedErrorCallback(new ErrorRollbackedCallback());
             resourceManager.write("it's working!");
             resourceManager.registerForTransaction(transactionId);
 
