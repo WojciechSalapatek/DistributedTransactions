@@ -23,7 +23,7 @@ import java.io.IOException;
 public class Runner {
 
     public static final String ROOT = "C:\\Users\\DELL\\Desktop\\GitHub\\distransactions\\application\\src\\main\\resources\\testfiles\\";
-    public static final String ROOT1 = "C:\\Users\\micha\\IdeaProjects\\DistributedTransactionsv2\\application\\src\\main\\resources\\";
+    public static final String ROOT1 = "C:\\Users\\DELL\\Desktop\\GitHub\\distransactions\\application\\src\\main\\resources\\";
 
     @Value("${mode}")
     private String mode;

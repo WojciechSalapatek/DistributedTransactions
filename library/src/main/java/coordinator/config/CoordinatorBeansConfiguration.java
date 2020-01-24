@@ -7,6 +7,6 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @EnableWebMvc
 @Configuration
-@ComponentScan(basePackages = "coordinator")
+@ComponentScan(basePackages = "com.elmachos.coordinator")
 class CoordinatorBeansConfiguration {
 }
