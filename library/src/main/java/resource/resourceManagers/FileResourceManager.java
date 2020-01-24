@@ -4,14 +4,14 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import resource.model.datasource.ResourceManagerService;
+import resource.transactions.TransactionStatus;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 @Slf4j
 public class FileResourceManager implements IResourceManger {
@@ -19,7 +19,7 @@ public class FileResourceManager implements IResourceManger {
     @Getter
     private final String id;
     private ResourceManagerService resourceManagerService;
-    private Queue<String> queue = new LinkedList<>();
+    private LinkedList<String> queue;
     private final Path path;
     private Path tmpPath;
 
@@ -27,6 +27,7 @@ public class FileResourceManager implements IResourceManger {
         this.id = id;
         this.path = Paths.get(path);
         this.resourceManagerService = resourceManagerService;
+        queue = new LinkedList<>();
         createTmpPath(this.path.getParent());
         resourceManagerService.addResourceManager(this);
     }
@@ -57,6 +58,11 @@ public class FileResourceManager implements IResourceManger {
         Files.copy(path, tmpPath);
         Files.writeString(tmpPath, String.join("\n", queue));
         queue.clear();
+    }
+
+    @Override
+    public TransactionStatus checkTransactionStatus(String transactionId) {
+        return resourceManagerService.checkTransactionId(transactionId);
     }
 
     @Override

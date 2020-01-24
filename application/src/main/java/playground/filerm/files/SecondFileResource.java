@@ -16,7 +16,6 @@ public class SecondFileResource {
     private String path;
 
     public void start(String transactionId) {
-
         try {
             FileResourceManager resourceManager = DataSourceFactory
                     .fileResourceManager(path);

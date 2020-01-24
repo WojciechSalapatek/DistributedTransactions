@@ -15,8 +15,9 @@ import org.springframework.web.client.RestTemplate;
 import resource.model.IDataSourceManager;
 import resource.resourceManagers.IResourceManger;
 import resource.transactions.ParticipantParams;
+import resource.transactions.TransactionStatus;
 
-import java.util.HashMap;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -31,7 +32,8 @@ public class ResourceManagerService implements IDataSourceManager {
     @Value("${resourceHandler.address}")
     private String address;
 
-    private final HashMap<String, IResourceManger> resourceMangers = new HashMap<>();
+    private final Map<String, IResourceManger> resourceMangers = new HashMap<>();
+    private final Map<String, TransactionStatus> transactionStatus = new LinkedHashMap<>();
     private final RestTemplate coordinatorEndpoint;
 
     private static final String createTransactionSuffix = "/createTransaction";
@@ -73,6 +75,7 @@ public class ResourceManagerService implements IDataSourceManager {
 
     @Override
     public ResponseEntity<String> commit(ParticipantParams participantParams) throws Exception {
+        log.info("Commiting transaction {} for {}", participantParams.getTransactionId(), participantParams.getParticipantId());
         IResourceManger resourceManager = resourceMangers.get(participantParams.getParticipantId());
         resourceManager.commit();
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(participantParams.getParticipantId());
@@ -80,6 +83,7 @@ public class ResourceManagerService implements IDataSourceManager {
 
     @Override
     public ResponseEntity<String> rollback(ParticipantParams participantParams) throws Exception {
+        log.info("Rollbacking transaction {} for {}", participantParams.getTransactionId(), participantParams.getParticipantId());
         IResourceManger resourceManager = resourceMangers.get(participantParams.getParticipantId());
         resourceManager.rollback();
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(participantParams.getParticipantId());
@@ -87,17 +91,24 @@ public class ResourceManagerService implements IDataSourceManager {
 
     @Override
     public void unexpectedTransactionError(String transactionId) {
-        throw new RuntimeException("Unexpected Transaction Error, transactionId =" + transactionId);
+        transactionStatus.put(transactionId, TransactionStatus.ROLLBACK_ERROR); //TODO size
+        throw new RuntimeException("Unexpected Rollback Error, transactionId =" + transactionId);
     }
 
     @Override
     public void transactionRollbacked(String transactionId) {
-        throw new RuntimeException("Transaction successfully rollbacked , transactionId =" + transactionId);
+        log.info("Transaction {} successfully rollbacked", transactionId);
+        transactionStatus.put(transactionId, TransactionStatus.ROLLBACKED);
     }
 
     @Override
     public void unableToFindParticipants(String transactionId) {
-        throw new RuntimeException("Unable to find Participants , transactionId =" + transactionId);
+        log.info("Unable to find participants for transactionId = {}", transactionId);
+        transactionStatus.put(transactionId, TransactionStatus.PARTICIPANTS_NOT_FOUND);
+    }
+
+    public TransactionStatus checkTransactionId(String transactionId) {
+        return transactionStatus.getOrDefault(transactionId, TransactionStatus.NO_INFO);
     }
 
 }

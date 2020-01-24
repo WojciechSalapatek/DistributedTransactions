@@ -3,6 +3,7 @@ package playground.filerm.database;
 import lombok.AllArgsConstructor;
 import resource.model.datasource.DataSourceFactory;
 import resource.resourceManagers.JDBCResourceManager;
+import resource.transactions.TransactionStatus;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

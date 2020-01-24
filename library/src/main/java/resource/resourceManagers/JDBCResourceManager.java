@@ -2,6 +2,7 @@ package resource.resourceManagers;
 
 import lombok.Getter;
 import resource.model.datasource.ResourceManagerService;
+import resource.transactions.TransactionStatus;
 
 import java.sql.*;
 import java.util.LinkedList;
@@ -60,6 +61,11 @@ public class JDBCResourceManager implements IResourceManger {
     }
 
     @Override
+    public TransactionStatus checkTransactionStatus(String transactionId) {
+        return resourceManagerService.checkTransactionId(transactionId);
+    }
+
+    @Override
     public void rollback() throws Exception {
         conn.rollback();
     }
@@ -69,7 +75,6 @@ public class JDBCResourceManager implements IResourceManger {
         conn.commit();
     }
 
-    //TODO consider this
     private void helpExecuteQuery(String query) {
         try {
             conn.createStatement().executeUpdate(query);

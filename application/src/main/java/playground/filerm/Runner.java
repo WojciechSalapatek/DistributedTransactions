@@ -7,6 +7,8 @@ import playground.filerm.database.FirstDatabaseApplication;
 import playground.filerm.database.SecondDatabaseApplication;
 import playground.filerm.files.FirstFileResource;
 import playground.filerm.files.SecondFileResource;
+import resource.model.datasource.DataSourceFactory;
+import resource.resourceManagers.FileResourceManager;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -60,7 +62,5 @@ public class Runner {
             FirstDatabaseApplication firstDatabaseApplication = new FirstDatabaseApplication(secondDatabaseApplication, query2[i]);
             firstDatabaseApplication.run();
         }
-
-
     }
 }

@@ -73,13 +73,7 @@ public class TransactionHandler extends Thread {
         List<ResponseEntity<String>> startedParticipants = sendHelper(CommandBuilder.getStartCommand(id),
                 "[transaction {}] Start command for {} failed due to {}", STARTED);
 
-        if (startedParticipants.contains(ERROR_STATUS) || !participantsOk()) {
-            timeoutExceeded();
-            return false;
-        } else {
-            participants.keySet().forEach(p -> participants.put(p, WAITING_FOR_COMMIT));
-            return true;
-        }
+        return checkParticipants(startedParticipants, WAITING_FOR_COMMIT);
     }
 
     private boolean sendCommitCommands() {
@@ -87,11 +81,15 @@ public class TransactionHandler extends Thread {
         List<ResponseEntity<String>> commitedParticipants = sendHelper(CommandBuilder.getCommitCommand(id, initializerId),
                 "[transaction {}] Commit for {} failed due to {}", COMMITED);
 
-        if (commitedParticipants.contains(ERROR_STATUS) || !participantsOk()) {
+        return checkParticipants(commitedParticipants, COMMITED);
+    }
+
+    private boolean checkParticipants(List<ResponseEntity<String>> startedParticipants, ParticipantStatus waitingForCommit) {
+        if (startedParticipants.contains(ERROR_STATUS) || !participantsOk()) {
             timeoutExceeded();
             return false;
         } else {
-            participants.keySet().forEach(p -> participants.put(p, COMMITED));
+            participants.keySet().forEach(p -> participants.put(p, waitingForCommit));
             return true;
         }
     }
@@ -117,7 +115,7 @@ public class TransactionHandler extends Thread {
                 .map(ListenableFuture::completable)
                 .map(p -> p.completeOnTimeout(ERROR_STATUS, timeout, TimeUnit.MILLISECONDS))
                 .map(CompletableFuture::join)
-                .collect(Collectors.toList()); //TODO: consider this
+                .collect(Collectors.toList());
     }
 
     private void sendSuccess(){

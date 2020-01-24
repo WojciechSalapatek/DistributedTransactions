@@ -1,7 +1,6 @@
 package resource.resourceManagers;
 
-import org.springframework.http.ResponseEntity;
-import resource.transactions.ParticipantParams;
+import resource.transactions.TransactionStatus;
 
 public interface IResourceManger {
 
@@ -16,6 +15,8 @@ public interface IResourceManger {
     void rollback() throws Exception;
 
     void execute() throws Exception;
+
+    TransactionStatus checkTransactionStatus(String transactionId);
 
     String getId();
 
