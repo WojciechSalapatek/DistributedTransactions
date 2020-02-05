@@ -41,10 +41,14 @@ public class TransactionHandler extends Thread {
     public static final ResponseEntity<String> ERROR_STATUS =  ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).build();
 
     public void run() {
-        if (!waitForAllParticipantsToRegister()) return;
-        if (!sendStartCommands()) return;
-        if (sendCommitCommands())
-            sendSuccess();
+            if (!waitForAllParticipantsToRegister()) return;
+        try {
+            if (!sendStartCommands()) return;
+            if (sendCommitCommands())
+                sendSuccess();
+        } catch (Exception e){
+            handleError();
+        }
     }
 
     public void registerParticipant(Participant participant) {
@@ -150,6 +154,10 @@ public class TransactionHandler extends Thread {
         log.error("[transaction {}] Waiting timeout {} exceeded, participants states: ", id, timeout);
         participants.forEach((k, v) -> log.error("{}: {}", k.getAddress(), v.getStatus()));
 
+        handleError();
+    }
+
+    private void handleError(){
         if (rollbackAll()) {
             log.info("[transaction {}] Intermediate changes was successfully rollbacked", id);
             Command errorCommand = CommandBuilder.getErrorRollbackedCommand(id, initializerId);

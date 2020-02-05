@@ -8,7 +8,7 @@
         <version>0.0.1-SNAPSHOT</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <artifactId>distransactions-application</artifactId>
+    <artifactId>application</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>application</name>
     <description>Demo project for Spring Boot</description>
@@ -56,6 +56,29 @@
             <groupId>postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>9.0-801.jdbc4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics </artifactId>
+            <version>11</version>
+            <classifier>win</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics </artifactId>
+            <version>11</version>
+            <classifier>linux</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics </artifactId>
+            <version>11</version>
+            <classifier>mac</classifier>
         </dependency>
     </dependencies>
 

@@ -76,7 +76,7 @@ public class ResourceManagerService implements IDataSourceManager {
 
     @Override
     public ResponseEntity<String> beginTransaction(ParticipantParams participantParams) throws Exception {
-        log.debug("Beginning for {}", participantParams.getParticipantId());
+        log.info("Beginning transaction {} for manager {}", participantParams.getTransactionId(), participantParams.getParticipantId());
         IResourceManger resourceManager = resourceMangers.get(participantParams.getParticipantId());
         resourceManager.checkDataSource();
         resourceManager.execute();
@@ -85,7 +85,7 @@ public class ResourceManagerService implements IDataSourceManager {
 
     @Override
     public ResponseEntity<String> commit(ParticipantParams participantParams) throws Exception {
-        log.info("Commiting transaction {} for {}", participantParams.getTransactionId(), participantParams.getParticipantId());
+        log.info("Commiting transaction {} for manager {}", participantParams.getTransactionId(), participantParams.getParticipantId());
         transactionStatus.put(participantParams.getTransactionId(), TransactionStatus.COMMITED);
         IResourceManger resourceManager = resourceMangers.get(participantParams.getParticipantId());
         resourceManager.commit();
@@ -94,7 +94,7 @@ public class ResourceManagerService implements IDataSourceManager {
 
     @Override
     public ResponseEntity<String> rollback(ParticipantParams participantParams) throws Exception {
-        log.info("Rollbacking transaction {} for {}", participantParams.getTransactionId(), participantParams.getParticipantId());
+        log.warn("Rollbacking transaction {} for {}", participantParams.getTransactionId(), participantParams.getParticipantId());
         IResourceManger resourceManager = resourceMangers.get(participantParams.getParticipantId());
         resourceManager.rollback();
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(participantParams.getParticipantId());
@@ -111,7 +111,7 @@ public class ResourceManagerService implements IDataSourceManager {
 
     @Override
     public void transactionRollbacked(String transactionId) {
-        log.info("Transaction {} successfully rollbacked", transactionId);
+        log.warn("Transaction {} successfully rollbacked", transactionId);
         if(!isNull(errorRollbackedCallback)) {
             errorRollbackedCallback.handle(transactionId);
         }
@@ -120,7 +120,7 @@ public class ResourceManagerService implements IDataSourceManager {
 
     @Override
     public void unableToFindParticipants(String transactionId) {
-        log.info("Unable to find participants for transactionId = {}", transactionId);
+        log.warn("Unable to find participants for transactionId = {}", transactionId);
         if(!isNull(initErrorCallback)) {
             initErrorCallback.handle(transactionId);
         }
