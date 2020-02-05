@@ -8,9 +8,5 @@ public class ErrorRollbackedCallback implements ErrorCallback {
     @Override
     public void handle(String transactionId) {
         log.info("Im handling rollbacked error");
-        log.info("Im handling rollbacked error");
-        log.info("Im handling rollbacked error");
-        log.info("Im handling rollbacked error");
-        log.info("Im handling rollbacked error");
     }
 }

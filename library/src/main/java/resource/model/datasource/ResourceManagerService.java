@@ -105,8 +105,9 @@ public class ResourceManagerService implements IDataSourceManager {
         transactionStatus.put(transactionId, TransactionStatus.ROLLBACK_ERROR); //TODO size
         if(!isNull(errorInconsistentCallback)) {
             errorInconsistentCallback.handle(transactionId);
+        } else {
+            throw new RuntimeException("Unexpected Rollback Error, transactionId =" + transactionId);
         }
-        throw new RuntimeException("Unexpected Rollback Error, transactionId =" + transactionId);
     }
 
     @Override

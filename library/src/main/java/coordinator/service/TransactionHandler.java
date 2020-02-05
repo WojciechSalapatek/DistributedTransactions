@@ -1,20 +1,21 @@
 package coordinator.service;
 
-import coordinator.command.*;
+import coordinator.command.Command;
+import coordinator.command.CommandBuilder;
 import coordinator.model.Participant;
 import coordinator.model.ParticipantStatus;
 import lombok.EqualsAndHashCode;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.concurrent.ListenableFuture;
 
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -38,15 +39,15 @@ public class TransactionHandler extends Thread {
     private int timeout = 5000;
     private int slept = 0;
 
-    public static final ResponseEntity<String> ERROR_STATUS =  ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).build();
+    public static final ResponseEntity<String> ERROR_STATUS = ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).build();
 
     public void run() {
-            if (!waitForAllParticipantsToRegister()) return;
+        if (!waitForAllParticipantsToRegister()) return;
         try {
             if (!sendStartCommands()) return;
             if (sendCommitCommands())
                 sendSuccess();
-        } catch (Exception e){
+        } catch (Exception e) {
             handleError();
         }
     }
@@ -55,7 +56,7 @@ public class TransactionHandler extends Thread {
         participants.put(participant, ParticipantStatus.INIT);
     }
 
-    private boolean participantsOk(){
+    private boolean participantsOk() {
         return participants.values().stream().noneMatch((v) -> v == ERROR);
     }
 
@@ -65,7 +66,8 @@ public class TransactionHandler extends Thread {
             Command errorCommand = CommandBuilder.getErrorInitializingCommand(id, initializerId);
             participantService.sendCommand(initializerAddress, errorCommand,
                     s -> {},
-                    th -> {});
+                    th -> {}
+                    );
             return false;
         }
         log.info("[transaction {}] All participants registered", id);
@@ -122,11 +124,12 @@ public class TransactionHandler extends Thread {
                 .collect(Collectors.toList());
     }
 
-    private void sendSuccess(){
+    private void sendSuccess() {
         log.info("[transaction {}] Transaction ended successfully", id);
         participantService.sendCommand(initializerAddress, CommandBuilder.getSuccessCommand(id, initializerId),
                 s -> {},
-                th -> {});
+                th -> {}
+                );
     }
 
     private boolean sleep(Supplier<Boolean> condition) {
@@ -157,21 +160,25 @@ public class TransactionHandler extends Thread {
         handleError();
     }
 
-    private void handleError(){
-        if (rollbackAll()) {
-            log.info("[transaction {}] Intermediate changes was successfully rollbacked", id);
-            Command errorCommand = CommandBuilder.getErrorRollbackedCommand(id, initializerId);
-            participantService.sendCommand(initializerAddress, errorCommand,
-                    s -> {},
-                    th -> {});
-        } else {
+    private void handleError() {
+        try {
+            if (rollbackAll()) {
+                log.info("[transaction {}] Intermediate changes was successfully rollbacked", id);
+                Command errorCommand = CommandBuilder.getErrorRollbackedCommand(id, initializerId);
+                participantService.sendCommand(initializerAddress, errorCommand,
+                        s -> {},
+                        th -> {}
+                        );
+            } else throw new RuntimeException();
+        } catch (Exception e){
             StringBuilder message = new StringBuilder();
             participants.forEach((k, v) -> message.append(String.format("%s : %s, ", k.getAddress(), v.getStatus())));
-            log.error("[transaction {}] Error during rollbacking, state: {}", id ,message.toString());
+            log.error("[transaction {}] Error during rollbacking, state: {}", id, message.toString());
             Command errorCommand = CommandBuilder.getErrorInconsistentStateCommand(id, initializerId, message.toString());
             participantService.sendCommand(initializerAddress, errorCommand,
                     s -> {},
-                    th -> {});
+                    th -> {}
+                    );
         }
     }
 }

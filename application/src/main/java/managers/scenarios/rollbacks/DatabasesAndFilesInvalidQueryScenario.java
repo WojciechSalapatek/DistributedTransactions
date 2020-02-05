@@ -10,10 +10,9 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 /*
-Makes transaction on two databases and two files, everything should go ok
+Makes transaction on two databases and two files, there is one invalid query, transaction is expected to be rollbacked
  */
 @Slf4j
-@Component
 public class DatabasesAndFilesInvalidQueryScenario {
 
     private final static String QUERY1 = "insert into test_table values ('" + RandomStringUtils.randomAlphabetic(5) + "', " + 99 + ")";
