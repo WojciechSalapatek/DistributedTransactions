@@ -22,4 +22,12 @@
         <java.version>11</java.version>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>15-ea+1</version>
+        </dependency>
+    </dependencies>
+
 </project>

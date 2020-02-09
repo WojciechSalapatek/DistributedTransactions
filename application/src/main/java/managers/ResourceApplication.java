@@ -1,6 +1,15 @@
 package managers;
 
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.client.RestTemplate;
@@ -11,10 +20,15 @@ import static org.springframework.boot.SpringApplication.run;
 @EnableResourceManager
 @SpringBootApplication
 @ComponentScan(basePackages = {"resource", "managers"})
-public class ResourceApplication {
+public class ResourceApplication extends javafx.application.Application {
 
-    public static void main(String[] args) {
-        run(ResourceApplication.class, args);
+    private ConfigurableApplicationContext context;
+    private Parent rootNode;
+
+    @Override
+    public void init() throws Exception {
+        SpringApplicationBuilder builder = new SpringApplicationBuilder(ResourceApplication.class);
+        context = builder.run(getParameters().getRaw().toArray(new String[0]));
     }
 
     @Bean
@@ -22,4 +36,10 @@ public class ResourceApplication {
         return new RestTemplate();
     }
 
+    @Override
+    public void start(Stage stage) throws Exception {
+        StackPane root = new StackPane();
+        stage.setScene(new Scene(root, 300, 250));
+        stage.show();
+    }
 }
