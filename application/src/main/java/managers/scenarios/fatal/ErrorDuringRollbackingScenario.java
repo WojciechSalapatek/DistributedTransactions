@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
-@Component
 //Makes transaction on just one database with one invalid query, transaction is expected to be rollbacked
 public class ErrorDuringRollbackingScenario {
 

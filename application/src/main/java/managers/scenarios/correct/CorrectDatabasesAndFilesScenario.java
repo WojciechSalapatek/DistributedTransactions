@@ -14,10 +14,11 @@ import javax.annotation.PostConstruct;
 Makes transaction on two databases and two files, everything should go ok
  */
 @Slf4j
+@Component
 public class CorrectDatabasesAndFilesScenario {
 
     private final static String QUERY1 = "insert into test_table values ('" + RandomStringUtils.randomAlphabetic(5) + "', " + 99 + ")";
-    private final static String QUERY2 = "insert into test_table1 values ('" + RandomStringUtils.randomAlphabetic(5) + "', " + 99 + ")";
+    private final static String QUERY2 = "insert into test_table values ('" + RandomStringUtils.randomAlphabetic(5) + "', " + 99 + ")";
     private final static String PATH1 = "C:\\Users\\DELL\\Desktop\\GitHub\\distransactions\\application\\src\\main\\resources\\testfiles\\file1";
     private final static String PATH2 = "C:\\Users\\DELL\\Desktop\\GitHub\\distransactions\\application\\src\\main\\resources\\testfiles\\file2";
 

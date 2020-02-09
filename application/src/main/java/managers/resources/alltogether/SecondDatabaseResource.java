@@ -17,7 +17,7 @@ public class SecondDatabaseResource implements Runnable{
 
     private String query;
     private String transactionId;
-    private final String url = "jdbc:postgresql://localhost:5432/dp";
+    private final String url = "jdbc:postgresql://localhost:5432/dp2";
     private final String user = "postgres";
     private final String password = "postgres";
 
