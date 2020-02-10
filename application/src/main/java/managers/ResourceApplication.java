@@ -23,7 +23,6 @@ import static org.springframework.boot.SpringApplication.run;
 public class ResourceApplication extends javafx.application.Application {
 
     private ConfigurableApplicationContext context;
-    private Parent rootNode;
 
     @Override
     public void init() throws Exception {
@@ -38,8 +37,11 @@ public class ResourceApplication extends javafx.application.Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        StackPane root = new StackPane();
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/window.fxml"));
+        Parent root = (Parent)fxmlLoader.load();
+
         stage.setScene(new Scene(root, 300, 250));
+        ((GUIController) fxmlLoader.getController()).init();
         stage.show();
     }
 }

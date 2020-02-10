@@ -14,7 +14,6 @@ import javax.annotation.PostConstruct;
 Makes transaction on two databases and two files, everything should go ok
  */
 @Slf4j
-@Component
 public class CorrectDatabasesAndFilesScenario {
 
     private final static String QUERY1 = "insert into test_table values ('" + RandomStringUtils.randomAlphabetic(5) + "', " + 99 + ")";
