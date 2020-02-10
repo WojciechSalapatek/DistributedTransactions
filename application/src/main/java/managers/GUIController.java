@@ -83,7 +83,7 @@ public class GUIController {
         col12.setCellValueFactory(
                 new PropertyValueFactory<managers.scenarios.TableView, String>("col2")
         );
-        
+
         col21.setCellValueFactory(
                 new PropertyValueFactory<managers.scenarios.TableView, String>("col1")
         );
@@ -91,12 +91,16 @@ public class GUIController {
                 new PropertyValueFactory<managers.scenarios.TableView, String>("col2")
         );
 
-        scheduler.scheduleAtFixedRate(() -> {
-            table1.getItems().addAll(getFromDatabase(url1));
-            table2.getItems().addAll(getFromDatabase(url2));
-            table1.refresh();
-            table2.refresh();
-        }, 8, 8, TimeUnit.SECONDS);
+        Runnable runnable = () -> {
+            scheduler.scheduleAtFixedRate(() -> {
+                table1.getItems().addAll(getFromDatabase(url1));
+                table2.getItems().addAll(getFromDatabase(url2));
+                table1.refresh();
+                table2.refresh();
+            }, 8, 8, TimeUnit.MILLISECONDS);
+        };
+        runnable.run();
+
     }
 
     private ObservableList<managers.scenarios.TableView> getFromDatabase(String url) {
