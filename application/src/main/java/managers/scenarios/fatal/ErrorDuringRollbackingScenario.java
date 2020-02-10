@@ -14,7 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
-//Makes transaction on just one database with one invalid query, transaction is expected to be rollbacked
+//Makes transaction on just one database with one invalid query, transaction is expected to be rollbacked, but
+//rollback fails, fatal error handler is expected to be invoked
 public class ErrorDuringRollbackingScenario {
 
     private final static String QUERY1 = "insert into test_table values ('" + RandomStringUtils.randomAlphabetic(5) + "', " + 99 + ")";

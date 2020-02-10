@@ -93,8 +93,8 @@ public class GUIController {
 
         Runnable runnable = () -> {
             scheduler.scheduleAtFixedRate(() -> {
-                table1.getItems().addAll(getFromDatabase(url1));
-                table2.getItems().addAll(getFromDatabase(url2));
+                table1.setItems(getFromDatabase(url1));
+                table2.setItems(getFromDatabase(url2));
                 table1.refresh();
                 table2.refresh();
             }, 8, 8, TimeUnit.MILLISECONDS);
