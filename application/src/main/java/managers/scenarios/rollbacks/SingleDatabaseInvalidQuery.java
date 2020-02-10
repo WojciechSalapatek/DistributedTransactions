@@ -26,4 +26,8 @@ public class SingleDatabaseInvalidQuery {
         resource.initiateTransaction();
     }
 
+    public String getComment(){
+        return "Makes transaction on just one database with one invalid query, transaction is expected to be rollbacked";
+    }
+
 }

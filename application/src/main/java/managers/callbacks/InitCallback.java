@@ -12,8 +12,8 @@ public class InitCallback implements ErrorCallback {
         log.info("Im handling init error");
         Platform.runLater(() -> {
             Notifications.create()
-                    .title("Transaction unsuccessful!")
-                    .text("Transaction has not been initialized as not all required resources registered for it, no changes has been made")
+                    .title("Init Error!")
+                    .text("Transaction has not been started as not all required resources registered for it, no changes has been made")
                     .showWarning();
         });
     }

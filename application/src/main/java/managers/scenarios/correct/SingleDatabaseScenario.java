@@ -29,4 +29,8 @@ public class SingleDatabaseScenario {
         resource.initiateTransaction();
     }
 
+    public String getComment(){
+        return "Makes transaction on just one database everything should go ok";
+    }
+
 }

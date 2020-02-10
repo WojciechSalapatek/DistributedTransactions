@@ -12,7 +12,7 @@ public class ErrorRollbackedCallback implements ErrorCallback {
         log.info("Im handling rollbacked error");
         Platform.runLater(() -> {
             Notifications.create()
-                    .title("Transaction unsuccessful!")
+                    .title("Transaction rollbacked!")
                     .text("Transaction has been rollbacked")
                     .showWarning();
         });

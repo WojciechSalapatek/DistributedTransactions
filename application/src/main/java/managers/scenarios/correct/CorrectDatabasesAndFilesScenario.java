@@ -38,4 +38,7 @@ public class CorrectDatabasesAndFilesScenario {
         secondFileResource.run();
     }
 
+    public String getComment(){
+        return "Makes transaction on two databases and two files, everything should go ok";
+    }
 }

@@ -7,17 +7,16 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.shape.Line?>
 
-
-<AnchorPane maxHeight="400.0" maxWidth="600.0" minHeight="400.0" minWidth="600.0" prefHeight="400.0" prefWidth="600.0" fx:controller="managers.GUIController" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane maxHeight="400.0" maxWidth="600.0" minHeight="400.0" minWidth="600.0" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="managers.GUIController">
     <children>
-        <Button layoutX="62.0" layoutY="44.0" mnemonicParsing="false" onAction="#runStrategy1" text="Button" />
-        <Button layoutX="161.0" layoutY="44.0" mnemonicParsing="false" onAction="#runStrategy2" text="Button" />
-        <Button layoutX="274.0" layoutY="44.0" mnemonicParsing="false" onAction="#runStrategy3" text="Button" />
-        <Button layoutX="372.0" layoutY="44.0" mnemonicParsing="false" onAction="#runStrategy4" text="Button" />
-        <Button layoutX="472.0" layoutY="44.0" mnemonicParsing="false" onAction="#runStrategy5" text="Button" />
+        <Button fx:id="button1" layoutX="62.0" layoutY="44.0" mnemonicParsing="false" onAction="#runStrategy1" text="Scenario1" />
+        <Button fx:id="button2" layoutX="140.0" layoutY="44.0" mnemonicParsing="false" onAction="#runStrategy2" text="Scenario2" />
+        <Button fx:id="button3" layoutX="221.0" layoutY="44.0" mnemonicParsing="false" onAction="#runStrategy3" text="Scenario3" />
+        <Button fx:id="button4" layoutX="300.0" layoutY="44.0" mnemonicParsing="false" onAction="#runStrategy4" text="Scenario4" />
+        <Button fx:id="button5" layoutX="379.0" layoutY="44.0" mnemonicParsing="false" onAction="#runStrategy5" text="Scenario5" />
         <Label layoutX="62.0" layoutY="14.0" prefHeight="25.0" prefWidth="75.0" text="Strategie" />
         <Line endX="359.0" layoutX="164.0" layoutY="39.0" startX="-100.0" />
-        <TableView fx:id="table1"  layoutX="61.0" layoutY="161.0" prefHeight="200.0" prefWidth="200.0">
+        <TableView fx:id="table1" layoutX="61.0" layoutY="161.0" prefHeight="200.0" prefWidth="200.0">
             <columns>
                 <TableColumn fx:id="col11" prefWidth="100.0" text="C1" />
                 <TableColumn fx:id="col12" prefWidth="99.0" text="C2" />
@@ -31,5 +30,6 @@
         </TableView>
         <Label layoutX="59.0" layoutY="143.0" prefHeight="17.0" prefWidth="81.0" text="Baza Danych 1" />
         <Label layoutX="326.0" layoutY="143.0" prefHeight="17.0" prefWidth="81.0" text="Baza Danych 2" />
+      <Button fx:id="button6" layoutX="456.0" layoutY="44.0" mnemonicParsing="false" onAction="#runStrategy6" text="Scenario6" />
     </children>
 </AnchorPane>

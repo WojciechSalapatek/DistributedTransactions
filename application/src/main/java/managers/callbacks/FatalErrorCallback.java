@@ -13,7 +13,7 @@ public class FatalErrorCallback implements ErrorCallback {
         log.info("Im handling fatal error");
         Platform.runLater(() -> {
             Notifications.create()
-                    .title("Transaction unsuccessful!")
+                    .title("Fatal Error!")
                     .text("An attempt to rollback transaction was unsuccessful, data may be corrupt")
                     .showError();
         });

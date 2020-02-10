@@ -4,12 +4,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import managers.scenarios.correct.CorrectDatabasesAndFilesScenario;
 import managers.scenarios.correct.SingleDatabaseScenario;
 import managers.scenarios.fatal.ErrorDuringRollbackingScenario;
+import managers.scenarios.initfail.ThreeResourcesRegisterWhenFourRequiredScenario;
 import managers.scenarios.rollbacks.DatabasesAndFilesInvalidQueryScenario;
 import managers.scenarios.rollbacks.SingleDatabaseInvalidQuery;
 
@@ -38,12 +41,31 @@ public class GUIController {
     @FXML
     private TableColumn col22;
 
+    @FXML
+    private Button button1;
+
+    @FXML
+    private Button button2;
+
+    @FXML
+    private Button button3;
+
+    @FXML
+    private Button button4;
+
+    @FXML
+    private Button button5;
+
+    @FXML
+    private Button button6;
+
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final CorrectDatabasesAndFilesScenario correctDatabasesAndFilesScenario = new CorrectDatabasesAndFilesScenario();
     private final SingleDatabaseScenario singleDatabaseScenario = new SingleDatabaseScenario();
     private final ErrorDuringRollbackingScenario errorDuringRollbackingScenario = new ErrorDuringRollbackingScenario();
     private final SingleDatabaseInvalidQuery singleDatabaseInvalidQuery = new SingleDatabaseInvalidQuery();
     private final DatabasesAndFilesInvalidQueryScenario databasesAndFilesInvalidQueryScenario = new DatabasesAndFilesInvalidQueryScenario();
+    private final ThreeResourcesRegisterWhenFourRequiredScenario threeResourcesRegisterWhenFourRequiredScenario = new ThreeResourcesRegisterWhenFourRequiredScenario();
 
     private final String url1 = "jdbc:postgresql://localhost:5432/dp";
     private final String url2 = "jdbc:postgresql://localhost:5432/dp2";
@@ -75,6 +97,11 @@ public class GUIController {
         databasesAndFilesInvalidQueryScenario.execute();
     }
 
+    @FXML
+    protected void runStrategy6() {
+        threeResourcesRegisterWhenFourRequiredScenario.execute();
+    }
+
     public void init() {
 
         col11.setCellValueFactory(
@@ -100,6 +127,13 @@ public class GUIController {
             }, 8, 8, TimeUnit.MILLISECONDS);
         };
         runnable.run();
+
+        button1.setTooltip(new Tooltip(correctDatabasesAndFilesScenario.getComment()));
+        button2.setTooltip(new Tooltip(singleDatabaseScenario.getComment()));
+        button3.setTooltip(new Tooltip(errorDuringRollbackingScenario.getComment()));
+        button4.setTooltip(new Tooltip(singleDatabaseInvalidQuery.getComment()));
+        button5.setTooltip(new Tooltip(databasesAndFilesInvalidQueryScenario.getComment()));
+        button6.setTooltip(new Tooltip(threeResourcesRegisterWhenFourRequiredScenario.getComment()));
 
     }
 

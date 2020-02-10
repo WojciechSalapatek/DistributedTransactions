@@ -37,4 +37,8 @@ public class DatabasesAndFilesInvalidQueryScenario {
         secondDatabaseResource.run();
     }
 
+    public String getComment(){
+        return "Makes transaction on two databases and two files, there is one invalid query, transaction is expected to be rollbacked";
+    }
+
 }
