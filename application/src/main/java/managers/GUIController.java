@@ -104,14 +104,11 @@ public class GUIController {
     }
 
     private ObservableList<managers.scenarios.TableView> getFromDatabase(String url) {
-        Connection conn = null;
         Statement stmt = null;
         ObservableList<managers.scenarios.TableView> data = FXCollections.observableArrayList();
-        try {
+        try (Connection conn = DriverManager.getConnection(url, user, password);){
             Class.forName("org.postgresql.Driver");
-            conn = DriverManager.getConnection(url, user, password);
             stmt = conn.createStatement();
-
             String sql = "SELECT col1, col2 FROM test_table";
             ResultSet rs = stmt.executeQuery(sql);
 
